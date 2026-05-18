@@ -825,5 +825,16 @@
             }
         }
     </script>
+    <script>
+  // Registra o Service Worker para habilitar o modo PWA Offline
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('EXNA MUSIC PWA: Ativado com sucesso!', reg.scope))
+        .catch(err => console.log('Erro ao registrar PWA:', err));
+    });
+  }
+</script>
+
 </body>
 </html>

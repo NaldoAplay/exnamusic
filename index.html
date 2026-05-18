@@ -509,6 +509,68 @@
         let isShuffle = false;
         let isLoop = false;
         let atualBlobUrl = null;
+        let db = null;
+
+        // MOTOR DO BANCO DE DADOS LOCAL (IndexedDB)
+        const dbName = "ExnaMusicDB";
+        const dbVersion = 1;
+
+        function iniciarBancoDados() {
+            const request = indexedDB.open(dbName, dbVersion);
+
+            request.onupgradeneeded = (e) => {
+                let database = e.target.result;
+                if (!database.objectStoreNames.contains("tracks")) {
+                    database.createObjectStore("tracks", { keyPath: "idInterno" });
+                }
+            };
+
+            request.onsuccess = (e) => {
+                db = e.target.result;
+                recuperarAcervoSalvo();
+            };
+
+            request.onerror = (e) => {
+                console.error("Erro ao inicializar base IndexedDB:", e);
+                txtStatus.innerText = "Modo persistência offline inativo.";
+            };
+        }
+
+        function salvarTrackNoBanco(track) {
+            if (!db) return;
+            const transaction = db.transaction(["tracks"], "readwrite");
+            const store = transaction.objectStore("tracks");
+            store.put(track);
+        }
+
+        function removerTrackDoBanco(idInterno) {
+            if (!db) return;
+            const transaction = db.transaction(["tracks"], "readwrite");
+            const store = transaction.objectStore("tracks");
+            store.delete(idInterno);
+        }
+
+        function recuperarAcervoSalvo() {
+            if (!db) return;
+            const transaction = db.transaction(["tracks"], "readonly");
+            const store = transaction.objectStore("tracks");
+            const request = store.getAll();
+
+            request.onsuccess = () => {
+                const faixasSalvas = request.result;
+                if (faixasSalvas && faixasSalvas.length > 0) {
+                    txtStatus.innerText = "Carregando catálogo salvo...";
+                    acervoOriginal = faixasSalvas;
+                    acervoOriginal.sort((a, b) => a.name.localeCompare(b.name));
+                    montarOrdemExecucao();
+                    
+                    btn.disabled = false;
+                    txtStatus.innerText = `${acervoOriginal.length} Tracks Restauradas!`;
+                    renderizarPainelPlaylist();
+                    carregarFaixa(0);
+                }
+            };
+        }
 
         // CONTROLE DO SLIDE-OVER
         function toggleSidebar() {
@@ -523,7 +585,7 @@
             }
         });
 
-        // SWIPE TOUCH DETECTOR: Arrastar para a direita para fechar a lista
+        // SWIPE TOUCH DETECTOR
         let touchStartX = 0;
         sidebar.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; });
         sidebar.addEventListener('touchend', (e) => {
@@ -533,7 +595,7 @@
             }
         });
 
-        // MOTOR DE ADIÇÃO CONTÍNUA (SOMA TRACKS SEM APAGAR O ACERVO)
+        // SELEÇÃO E ADIÇÃO CONTÍNUA
         picker.addEventListener('change', async (e) => {
             const files = Array.from(e.target.files);
             let audiosFiltrados = files.filter(file => file.name.toLowerCase().endsWith('.mp3') || file.name.toLowerCase().endsWith('.m4a'));
@@ -543,38 +605,33 @@
                 return;
             }
 
-            txtStatus.innerText = "Somando tracks ao acervo...";
+            txtStatus.innerText = "Sincronizando novas tracks...";
 
-            // Identifica qual era a música que estava tocando de verdade antes da importação
             let musicaAtualSalva = null;
             if (acervoOriginal.length > 0 && ordemExecucao.length > 0) {
                 musicaAtualSalva = acervoOriginal[ordemExecucao[indiceAtual]];
             }
 
-            // Descobre o maior ID interno para continuar incrementando sem conflito de chaves
             let proximoIdInterno = acervoOriginal.length > 0 ? Math.max(...acervoOriginal.map(m => m.idInterno)) + 1 : 0;
 
-            // Transforma os novos arquivos no padrão do player
             const novasTracks = audiosFiltrados.map((file, idx) => {
-                return {
+                const trackObjeto = {
                     idInterno: proximoIdInterno + idx,
-                    fileObject: file,
+                    fileObject: file, // Salva o File/Blob binário real na memória do banco
                     name: file.name.replace(/\.[^/.]+$/, "").toUpperCase(),
                     artist: "EXNA STUDIO",
                     thumbBase64: 'logo-quadrada.png'
                 };
+                
+                // Grava a faixa fisicamente no banco de dados do navegador
+                salvarTrackNoBanco(trackObjeto);
+                return trackObjeto;
             });
 
-            // Soma as novas tracks ao acervo que já existia
             acervoOriginal = [...acervoOriginal, ...novasTracks];
-
-            // Reorganiza o acervo completo em ordem alfabética de forma limpa
             acervoOriginal.sort((a, b) => a.name.localeCompare(b.name));
-            
-            // Refaz a matriz de execução baseada no novo acervo ordenado
             montarOrdemExecucao();
             
-            // Sincroniza o ponteiro do player para que ele não mude de faixa ou se perca ao recalcular a ordem
             if (musicaAtualSalva) {
                 let novoIndexNoAcervo = acervoOriginal.findIndex(m => m.idInterno === musicaAtualSalva.idInterno);
                 indiceAtual = ordemExecucao.indexOf(novoIndexNoAcervo);
@@ -587,7 +644,7 @@
             txtStatus.innerText = `${acervoOriginal.length} Músicas no Catálogo!`;
             
             renderizarPainelPlaylist();
-            escanearCapasEmSegundoPlano(novasTracks); // Escaneia tags ID3 apenas das novas tracks (otimiza desempenho)
+            escanearCapasEmSegundoPlano(novasTracks);
         });
 
         function montarOrdemExecucao() {
@@ -646,13 +703,14 @@
                             if(imgEl) imgEl.src = base64;
                             if(artEl) artEl.innerText = artistaTag;
                             
-                            // Se a faixa escaneada for a que está tocando agora no deck, atualiza a capa principal imediatamente
                             if (ordemExecucao[indiceAtual] === acervoOriginal.findIndex(m => m.idInterno === faixa.idInterno)) {
                                 txtCover.src = base64;
                                 bgGlow.style.backgroundImage = `url('${base64}')`;
                                 updateLockScreen(faixa.name, artistaTag, base64);
                             }
                         }
+                        // Atualiza os metadados e artes refinados diretamente no banco persistente
+                        salvarTrackNoBanco(faixa);
                     }
                 });
             });
@@ -669,6 +727,10 @@
             if(indexNoAcervo === -1) return;
 
             const idNaOrdemQueVaiSumir = ordemExecucao.indexOf(indexNoAcervo);
+            
+            // Deleta o registro fisicamente do armazenamento IndexedDB
+            removerTrackDoBanco(acervoOriginal[indexNoAcervo].idInterno);
+            
             acervoOriginal.splice(indexNoAcervo, 1);
             montarOrdemExecucao();
 
@@ -824,17 +886,20 @@
                 navigator.mediaSession.setActionHandler('nexttrack', () => { proximaFaixa(); });
             }
         }
-    </script>
-    <script>
-  // Registra o Service Worker para habilitar o modo PWA Offline
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js')
-        .then(reg => console.log('EXNA MUSIC PWA: Ativado com sucesso!', reg.scope))
-        .catch(err => console.log('Erro ao registrar PWA:', err));
-    });
-  }
-</script>
 
+        // DISPARA O MOTOR DO BANCO DE DADOS ASSIM QUE O APP INICIA
+        window.addEventListener('DOMContentLoaded', iniciarBancoDados);
+    </script>
+    
+    <!-- REGISTRO DO SERVICE WORKER DO PWA -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('sw.js')
+            .then(reg => console.log('EXNA MUSIC PWA: Ativado com sucesso!', reg.scope))
+            .catch(err => console.log('Erro ao registrar PWA:', err));
+        });
+      }
+    </script>
 </body>
 </html>

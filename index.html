@@ -568,6 +568,8 @@
                     txtStatus.innerText = `${acervoOriginal.length} Tracks Restauradas!`;
                     renderizarPainelPlaylist();
                     carregarFaixa(0);
+                } else {
+                    txtStatus.innerText = "Aguardando Seleção...";
                 }
             };
         }
@@ -595,7 +597,7 @@
             }
         });
 
-        // SELEÇÃO E ADIÇÃO CONTÍNUA
+        // SELEÇÃO E ADIÇÃO CONTÍNUA CORRIGIDA
         picker.addEventListener('change', async (e) => {
             const files = Array.from(e.target.files);
             let audiosFiltrados = files.filter(file => file.name.toLowerCase().endsWith('.mp3') || file.name.toLowerCase().endsWith('.m4a'));
@@ -612,22 +614,23 @@
                 musicaAtualSalva = acervoOriginal[ordemExecucao[indiceAtual]];
             }
 
-            let proximoIdInterno = acervoOriginal.length > 0 ? Math.max(...acervoOriginal.map(m => m.idInterno)) + 1 : 0;
+            // CORREÇÃO: Evita colisão de IDs usando o Timestamp atual combinado com o index
+            const baseId = Date.now();
 
             const novasTracks = audiosFiltrados.map((file, idx) => {
                 const trackObjeto = {
-                    idInterno: proximoIdInterno + idx,
-                    fileObject: file, // Salva o File/Blob binário real na memória do banco
+                    idInterno: baseId + idx, 
+                    fileObject: file, // O arquivo binário é salvo aqui de forma segura
                     name: file.name.replace(/\.[^/.]+$/, "").toUpperCase(),
                     artist: "EXNA STUDIO",
                     thumbBase64: 'logo-quadrada.png'
                 };
                 
-                // Grava a faixa fisicamente no banco de dados do navegador
                 salvarTrackNoBanco(trackObjeto);
                 return trackObjeto;
             });
 
+            // Une o acervo antigo com as novas músicas adicionadas, sem sobrescrever
             acervoOriginal = [...acervoOriginal, ...novasTracks];
             acervoOriginal.sort((a, b) => a.name.localeCompare(b.name));
             montarOrdemExecucao();
@@ -645,6 +648,9 @@
             
             renderizarPainelPlaylist();
             escanearCapasEmSegundoPlano(novasTracks);
+            
+            // Limpa o input para permitir selecionar a mesma pasta novamente se necessário
+            picker.value = "";
         });
 
         function montarOrdemExecucao() {
@@ -666,6 +672,8 @@
 
             ordemExecucao.forEach((idReal, indexNaOrdem) => {
                 const faixa = acervoOriginal[idReal];
+                if (!faixa) return;
+                
                 const item = document.createElement('div');
                 item.className = `playlist-item ${indexNaOrdem === indiceAtual ? 'current-track' : ''}`;
                 item.setAttribute('onclick', `pularParaMusicaDaLista(${indexNaOrdem})`);
@@ -686,6 +694,8 @@
 
         function escanearCapasEmSegundoPlano(listaParaEscanear = acervoOriginal) {
             listaParaEscanear.forEach(faixa => {
+                if (!faixa.fileObject) return;
+                
                 jsmediatags.read(faixa.fileObject, {
                     onSuccess: function(tag) {
                         let artistaTag = tag.tags.artist ? tag.tags.artist.toUpperCase() : "EXNA STUDIO";
@@ -709,8 +719,10 @@
                                 updateLockScreen(faixa.name, artistaTag, base64);
                             }
                         }
-                        // Atualiza os metadados e artes refinados diretamente no banco persistente
                         salvarTrackNoBanco(faixa);
+                    },
+                    onError: function(error) {
+                        console.log("Sem metadados para esta faixa, mantendo padrão.", error);
                     }
                 });
             });
@@ -728,7 +740,6 @@
 
             const idNaOrdemQueVaiSumir = ordemExecucao.indexOf(indexNoAcervo);
             
-            // Deleta o registro fisicamente do armazenamento IndexedDB
             removerTrackDoBanco(acervoOriginal[indexNoAcervo].idInterno);
             
             acervoOriginal.splice(indexNoAcervo, 1);
@@ -740,6 +751,7 @@
                 txtTitle.innerText = "DECK VAZIO"; txtArtist.innerText = "Selecione seus arquivos locais";
                 txtCover.src = 'logo-quadrada.png'; bgGlow.style.backgroundImage = "url('logo-quadrada.png')";
                 btn.disabled = true; icon.className = "fas fa-play"; card.classList.remove('playing');
+                txtStatus.innerText = "Aguardando Seleção...";
                 renderizarPainelPlaylist(); return;
             }
 
@@ -777,19 +789,26 @@
             const idReal = ordemExecucao[indiceAtual];
             const faixa = acervoOriginal[idReal];
 
+            if (!faixa) return;
+
             if (atualBlobUrl) { URL.revokeObjectURL(atualBlobUrl); }
             
-            atualBlobUrl = URL.createObjectURL(faixa.fileObject);
-            player.src = atualBlobUrl;
-            player.load();
-            
-            txtTitle.innerText = ConvertName(faixa.name);
-            txtArtist.innerText = faixa.artist;
-            txtCover.src = faixa.thumbBase64;
-            bgGlow.style.backgroundImage = `url('${faixa.thumbBase64}')`;
+            try {
+                atualBlobUrl = URL.createObjectURL(faixa.fileObject);
+                player.src = atualBlobUrl;
+                player.load();
+                
+                txtTitle.innerText = ConvertName(faixa.name);
+                txtArtist.innerText = faixa.artist;
+                txtCover.src = faixa.thumbBase64;
+                bgGlow.style.backgroundImage = `url('${faixa.thumbBase64}')`;
 
-            marcarFaixaAtivaNaLista();
-            updateLockScreen(faixa.name, faixa.artist, faixa.thumbBase64);
+                marcarFaixaAtivaNaLista();
+                updateLockScreen(faixa.name, faixa.artist, faixa.thumbBase64);
+            } catch (err) {
+                console.error("Erro ao gerar URL do arquivo armazenado:", err);
+                proximaFaixa();
+            }
         }
 
         function ConvertName(str) { return str.replace(/_/g, " ").toUpperCase(); }
@@ -817,11 +836,13 @@
         });
 
         function proximaFaixa() {
+            if (ordemExecucao.length <= 1 && isLoop === false) return;
             carregarFaixa(indiceAtual + 1);
             player.play().catch(e => console.log("Erro ao passar próxima faixa:", e));
         }
 
         function voltarFaixa() {
+            if (ordemExecucao.length <= 1) return;
             carregarFaixa(indiceAtual - 1);
             player.play().catch(e => console.log("Erro ao passar faixa anterior:", e));
         }
@@ -864,13 +885,12 @@
 
         player.addEventListener('ended', () => {
             if (isLoop) return;
-            console.log("Track finalizada com sucesso. Chamando passagem pelo hardware nativo...");
             proximaFaixa();
         });
         
         player.addEventListener('error', (e) => {
-            console.log("Erro detectado no core de áudio, forçando salto de segurança.", e);
-            proximaFaixa();
+            console.log("Erro detectado no core de áudio.", e);
+            if(acervoOriginal.length > 1) proximaFaixa();
         });
 
         function updateLockScreen(title, artist, capaUrl) {
@@ -887,7 +907,6 @@
             }
         }
 
-        // DISPARA O MOTOR DO BANCO DE DADOS ASSIM QUE O APP INICIA
         window.addEventListener('DOMContentLoaded', iniciarBancoDados);
     </script>
     

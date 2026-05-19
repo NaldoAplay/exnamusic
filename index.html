@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>EXNA MUSIC - Google Drive Player</title>
+    <title>EXNA MUSIC</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
     
@@ -490,7 +490,7 @@
         const PASTA_ID = '1vcukZmaqRgdkg6hEe-zgMjY7H9VwwY9J'; 
         const API_KEY = 'AIzaSyBVpSXuoQT0jjh6nqzKo5U1IYlaP_qolSs'; 
         const DB_NAME = 'ExnaMusicDB';
-        const DB_VERSION = 5;
+        const DB_VERSION = 8;
 
         // ==================== ELEMENTOS ====================
         const player = document.getElementById('audio-core');
@@ -517,6 +517,8 @@
         let modoLoop = false;
         let db = null;
         let sincronizando = false;
+        let verificadorAtivo = null;
+        let ultimoTempoVerificado = 0;
         
         // ==================== FUNÇÕES DE BANCO DE DADOS ====================
         function abrirBancoDados() {
@@ -547,7 +549,9 @@
             const tx = db.transaction(['playlist'], 'readwrite');
             const store = tx.objectStore('playlist');
             store.clear();
-            playlist.forEach(musica => store.put(musica));
+            for (const musica of playlist) {
+                store.put(musica);
+            }
         }
         
         async function carregarPlaylistDoBanco() {
@@ -561,7 +565,7 @@
             });
         }
         
-        async function salvarEstado(tempo = null) {
+        async function salvarEstado() {
             if (!db) return;
             const tx = db.transaction(['estado'], 'readwrite');
             const store = tx.objectStore('estado');
@@ -569,7 +573,7 @@
             const estado = {
                 chave: 'player_state',
                 indiceAtual: indiceAtual,
-                tempo: tempo !== null ? tempo : (player.currentTime || 0),
+                tempo: player.currentTime || 0,
                 volume: player.volume,
                 shuffle: modoShuffle,
                 loop: modoLoop,
@@ -595,7 +599,7 @@
         async function sincronizarGoogleDrive() {
             if (sincronizando) return;
             sincronizando = true;
-            txtStatus.innerHTML = '<span class="loading"></span> Sincronizando com Google Drive...';
+            txtStatus.innerHTML = '<span class="loading"></span> Sincronizando...';
             
             const url = `https://www.googleapis.com/drive/v3/files?q='${PASTA_ID}'+in+parents+and+trashed=false&fields=files(id,name,mimeType)&key=${API_KEY}&pageSize=1000`;
             
@@ -609,12 +613,11 @@
                     return;
                 }
                 
-                // PEGA TODOS OS MP3
                 const musicasDrive = data.files.filter(f => f.name.toLowerCase().endsWith('.mp3'));
-                const imagensDrive = data.files.filter(f => f.mimeType.includes('image') && (f.name.toLowerCase().endsWith('.jpg') || f.name.toLowerCase().endsWith('.png')));
-                
-                console.log(`📁 Total de MP3 encontrados: ${musicasDrive.length}`);
-                txtStatus.innerHTML = `<span class="loading"></span> Encontrados ${musicasDrive.length} MP3...`;
+                const imagensDrive = data.files.filter(f => {
+                    const nome = f.name.toLowerCase();
+                    return nome.endsWith('.jpg') || nome.endsWith('.jpeg') || nome.endsWith('.png');
+                });
                 
                 if (musicasDrive.length === 0) {
                     txtStatus.innerText = "Nenhum MP3 encontrado!";
@@ -622,20 +625,17 @@
                     return;
                 }
                 
-                // Carregar playlist atual do banco
-                const playlistAtual = await carregarPlaylistDoBanco();
-                const mapaExistente = new Map();
-                playlistAtual.forEach(m => mapaExistente.set(m.id, m));
+                const mapaImagens = new Map();
+                for (const img of imagensDrive) {
+                    const nomeSemExtensao = img.name.replace(/\.(jpg|jpeg|png)$/i, "").toLowerCase();
+                    mapaImagens.set(nomeSemExtensao, img);
+                }
                 
-                // Processar TODAS as músicas
-                const musicasProcessadas = [];
-                
-                for (let i = 0; i < musicasDrive.length; i++) {
-                    const m = musicasDrive[i];
-                    const nomeCompleto = m.name;
-                    const nomeSemExtensao = nomeCompleto.replace(/\.mp3$/i, "");
+                const novasMusicas = [];
+                for (const m of musicasDrive) {
+                    const nomeSemExtensao = m.name.replace(/\.mp3$/i, "");
+                    const nomeLower = nomeSemExtensao.toLowerCase();
                     
-                    // Extrair artista e título
                     let artista = "EXNA MUSIC";
                     let titulo = nomeSemExtensao;
                     
@@ -645,47 +645,31 @@
                         titulo = nomeSemExtensao.substring(separador + 3).trim();
                     }
                     
-                    // PROCURA CAPA LOCAL (mesmo nome do arquivo)
-                    const capaLocal = imagensDrive.find(img => {
-                        const imgNome = img.name.replace(/\.(jpg|png|jpeg)$/i, "");
-                        return imgNome === nomeSemExtensao;
-                    });
-                    
-                    let capaUrl = capaLocal ? `https://www.googleapis.com/drive/v3/files/${capaLocal.id}?alt=media&key=${API_KEY}` : null;
-                    
-                    // Se já existia, mantém a capa que tinha
-                    const existente = mapaExistente.get(m.id);
-                    if (existente && existente.capaUrl && existente.capaUrl !== 'logo-quadrada.png') {
-                        capaUrl = existente.capaUrl;
+                    let capaUrl = null;
+                    const capaEncontrada = mapaImagens.get(nomeLower);
+                    if (capaEncontrada) {
+                        capaUrl = `https://www.googleapis.com/drive/v3/files/${capaEncontrada.id}?alt=media&key=${API_KEY}`;
                     }
                     
-                    musicasProcessadas.push({
+                    novasMusicas.push({
                         id: m.id,
                         nome: titulo,
                         artista: artista,
                         capaUrl: capaUrl || 'logo-quadrada.png',
                         url: `https://www.googleapis.com/drive/v3/files/${m.id}?alt=media&key=${API_KEY}`
                     });
-                    
-                    if ((i + 1) % 20 === 0) {
-                        txtStatus.innerHTML = `<span class="loading"></span> Processando: ${i+1}/${musicasDrive.length}`;
-                    }
                 }
                 
-                playlist = musicasProcessadas;
+                playlist = novasMusicas;
                 await salvarPlaylistNoBanco();
                 
-                txtStatus.innerText = `✅ ${playlist.length} músicas sincronizadas!`;
-                console.log(`📊 Total sincronizado: ${playlist.length} músicas`);
+                txtStatus.innerText = `✅ ${playlist.length} músicas!`;
                 
-                // Inicializar ordem de execução
-                if (ordemExecucao.length === 0 || ordemExecucao.length !== playlist.length) {
-                    ordemExecucao = playlist.map((_, i) => i);
-                    if (modoShuffle) {
-                        for (let i = ordemExecucao.length - 1; i > 0; i--) {
-                            const j = Math.floor(Math.random() * (i + 1));
-                            [ordemExecucao[i], ordemExecucao[j]] = [ordemExecucao[j], ordemExecucao[i]];
-                        }
+                ordemExecucao = playlist.map((_, i) => i);
+                if (modoShuffle) {
+                    for (let i = ordemExecucao.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [ordemExecucao[i], ordemExecucao[j]] = [ordemExecucao[j], ordemExecucao[i]];
                     }
                 }
                 
@@ -704,7 +688,6 @@
         // ==================== CARREGAR ESTADO SALVO ====================
         async function carregarEstadoSalvo() {
             const estado = await carregarEstado();
-            console.log("📀 Estado carregado:", estado);
             
             if (estado && estado.playlistIds && estado.ordemExecucao) {
                 const idsAtuais = playlist.map(m => m.id);
@@ -724,7 +707,6 @@
                 indiceAtual = 0;
             }
             
-            // Restaurar modos
             if (estado) {
                 modoShuffle = estado.shuffle || false;
                 modoLoop = estado.loop || false;
@@ -737,17 +719,14 @@
                 }
             }
             
-            // Carregar primeira música
             if (playlist.length > 0 && ordemExecucao.length > 0) {
                 carregarMusica(indiceAtual);
                 
-                // Restaurar tempo
                 if (estado && estado.tempo !== undefined && estado.tempo > 0) {
                     const restaurarTempo = () => {
                         if (player.duration && !isNaN(player.duration) && estado.tempo < player.duration) {
                             player.currentTime = estado.tempo;
                             atualizarBarraProgresso();
-                            console.log(`⏰ Tempo restaurado: ${estado.tempo.toFixed(2)}s`);
                         }
                         player.removeEventListener('loadedmetadata', restaurarTempo);
                         player.removeEventListener('canplay', restaurarTempo);
@@ -756,15 +735,48 @@
                     player.addEventListener('canplay', restaurarTempo);
                 }
                 
-                // Se estava tocando antes, volta a tocar
                 if (estado && estado.wasPlaying) {
                     setTimeout(() => {
                         player.play().catch(() => {});
-                    }, 500);
+                    }, 300);
                 }
             }
             
             renderizarPlaylist();
+            iniciarVerificadorMusica();
+        }
+        
+        // ==================== VERIFICADOR DE MÚSICA (FORÇA A TROCA) ====================
+        function iniciarVerificadorMusica() {
+            if (verificadorAtivo) clearInterval(verificadorAtivo);
+            
+            verificadorAtivo = setInterval(() => {
+                // Só verifica se estiver tocando e não estiver em loop
+                if (!player.paused && !modoLoop && player.duration > 0) {
+                    const tempoAtual = player.currentTime;
+                    const duracao = player.duration;
+                    
+                    // Se chegou a 98% da música ou faltam menos de 1 segundo
+                    if (duracao - tempoAtual <= 1.0) {
+                        console.log(`🎵 Verificador: música terminando (${tempoAtual.toFixed(1)}/${duracao.toFixed(1)}), trocando...`);
+                        
+                        // Pausa o verificador temporariamente para evitar múltiplas trocas
+                        clearInterval(verificadorAtivo);
+                        verificadorAtivo = null;
+                        
+                        // Troca a música
+                        proximaMusica();
+                        
+                        // Reinicia o verificador depois de um tempo
+                        setTimeout(() => {
+                            if (!verificadorAtivo) iniciarVerificadorMusica();
+                        }, 1000);
+                    }
+                    
+                    // Atualiza o último tempo verificado
+                    ultimoTempoVerificado = tempoAtual;
+                }
+            }, 500); // Verifica a cada 500ms
         }
         
         // ==================== FUNÇÕES DO PLAYER ====================
@@ -793,10 +805,37 @@
             renderizarPlaylist();
             
             if (wasPlaying) {
-                setTimeout(() => player.play().catch(() => {}), 200);
+                setTimeout(() => {
+                    player.play().catch(() => {
+                        console.log("Erro ao retomar, tentando novamente...");
+                        setTimeout(() => player.play().catch(() => {}), 500);
+                    });
+                }, 200);
             }
             
             salvarEstado();
+        }
+        
+        // ==================== TELA BLOQUEADA ====================
+        function atualizarTelaBloqueada(titulo, artista, capaUrl) {
+            if (!('mediaSession' in navigator)) return;
+            
+            const imagemUrl = (capaUrl && capaUrl !== 'logo-quadrada.png') ? capaUrl : 'logo-quadrada.png';
+            
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: titulo || 'EXNA MUSIC',
+                artist: artista || 'EXNA',
+                album: 'EXNA MUSIC PLAYER',
+                artwork: [
+                    { src: imagemUrl, sizes: '512x512', type: 'image/png' },
+                    { src: 'logo-quadrada.png', sizes: '512x512', type: 'image/png' }
+                ]
+            });
+            
+            navigator.mediaSession.setActionHandler('play', () => player.play().catch(() => {}));
+            navigator.mediaSession.setActionHandler('pause', () => player.pause());
+            navigator.mediaSession.setActionHandler('previoustrack', () => musicaAnterior());
+            navigator.mediaSession.setActionHandler('nexttrack', () => proximaMusica());
         }
         
         function atualizarBarraProgresso() {
@@ -805,13 +844,11 @@
                 progressBar.value = pct;
                 tempoAtualSpan.innerText = formatarTempo(player.currentTime);
                 tempoTotalSpan.innerText = formatarTempo(player.duration);
-            } else if (player.currentTime > 0) {
-                tempoAtualSpan.innerText = formatarTempo(player.currentTime);
             }
         }
         
         function formatarTempo(segundos) {
-            if (isNaN(segundos) || segundos === Infinity) return "0:00";
+            if (isNaN(segundos)) return "0:00";
             const min = Math.floor(segundos / 60);
             const sec = Math.floor(segundos % 60);
             return `${min}:${sec < 10 ? '0' + sec : sec}`;
@@ -827,8 +864,9 @@
         
         function proximaMusica() {
             if (playlist.length === 0) return;
+            console.log(`⏩ Próxima música: índice ${indiceAtual} -> ${indiceAtual + 1}`);
             carregarMusica(indiceAtual + 1);
-            player.play().catch(() => {});
+            setTimeout(() => player.play().catch(() => {}), 300);
         }
         
         function musicaAnterior() {
@@ -838,7 +876,7 @@
                 salvarEstado();
             } else {
                 carregarMusica(indiceAtual - 1);
-                player.play().catch(() => {});
+                setTimeout(() => player.play().catch(() => {}), 300);
             }
         }
         
@@ -883,10 +921,6 @@
             cardPlayer.classList.add('playing');
             if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "playing";
             txtStatus.innerText = "🎵 Tocando...";
-            if (playlist.length > 0 && ordemExecucao[indiceAtual] !== undefined) {
-                const musica = playlist[ordemExecucao[indiceAtual]];
-                atualizarTelaBloqueada(musica.nome, musica.artista, musica.capaUrl);
-            }
         });
         
         player.addEventListener('pause', () => {
@@ -899,7 +933,7 @@
         });
         
         player.addEventListener('ended', () => {
-            console.log("🎵 Música terminou, tocando próxima!");
+            console.log("🎵 Evento ended disparado!");
             if (!modoLoop) {
                 proximaMusica();
             }
@@ -910,8 +944,8 @@
         });
         
         player.addEventListener('error', (e) => {
-            console.error("Erro no áudio:", e);
-            txtStatus.innerText = "Erro na música, pulando...";
+            console.error("Erro:", e);
+            txtStatus.innerText = "Erro, pulando...";
             setTimeout(() => proximaMusica(), 1000);
         });
         
@@ -922,23 +956,18 @@
             }
         });
         
-        window.addEventListener('beforeunload', () => {
-            salvarEstado();
-        });
-        
+        window.addEventListener('beforeunload', () => salvarEstado());
         document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                salvarEstado();
-            }
+            if (document.hidden) salvarEstado();
         });
         
-        // ==================== INTERFACE DA PLAYLIST ====================
+        // ==================== INTERFACE ====================
         function renderizarPlaylist() {
             if (!playlistBox) return;
             playlistBox.innerHTML = "";
             
             if (playlist.length === 0) {
-                playlistBox.innerHTML = '<div style="text-align: center; color: #444; padding: 20px;">Nenhuma música carregada</div>';
+                playlistBox.innerHTML = '<div style="text-align: center; color: #444; padding: 20px;">Nenhuma música</div>';
                 return;
             }
             
@@ -948,7 +977,7 @@
                 div.className = `playlist-item ${idx === indiceAtual ? 'current-track' : ''}`;
                 div.onclick = () => {
                     carregarMusica(idx);
-                    player.play().catch(() => {});
+                    setTimeout(() => player.play().catch(() => {}), 200);
                     fecharSidebar();
                 };
                 div.innerHTML = `
@@ -970,45 +999,6 @@
         function fecharSidebar() {
             sidebar.classList.remove('open');
             overlay.classList.remove('open');
-        }
-        
-        // ==================== TELA BLOQUEADA / NOTIFICAÇÃO ====================
-        function atualizarTelaBloqueada(titulo, artista, capaUrl) {
-            if ('mediaSession' in navigator) {
-                const imagemUrl = (capaUrl && capaUrl !== 'logo-quadrada.png') ? capaUrl : 'logo-quadrada.png';
-                
-                navigator.mediaSession.metadata = new MediaMetadata({
-                    title: titulo || 'EXNA MUSIC',
-                    artist: artista || 'EXNA',
-                    album: 'EXNA MUSIC PLAYER',
-                    artwork: [
-                        { src: imagemUrl, sizes: '512x512', type: 'image/png' },
-                        { src: 'logo-quadrada.png', sizes: '512x512', type: 'image/png' }
-                    ]
-                });
-                
-                // CRUCIAL: Configurar os handlers para os botões do fone/notificação
-                navigator.mediaSession.setActionHandler('play', () => {
-                    player.play().catch(() => {});
-                });
-                navigator.mediaSession.setActionHandler('pause', () => {
-                    player.pause();
-                });
-                navigator.mediaSession.setActionHandler('previoustrack', () => {
-                    musicaAnterior();
-                });
-                navigator.mediaSession.setActionHandler('nexttrack', () => {
-                    proximaMusica();
-                });
-                navigator.mediaSession.setActionHandler('seekbackward', (details) => {
-                    player.currentTime = Math.max(player.currentTime - (details.seekOffset || 10), 0);
-                });
-                navigator.mediaSession.setActionHandler('seekforward', (details) => {
-                    player.currentTime = Math.min(player.currentTime + (details.seekOffset || 10), player.duration);
-                });
-                
-                console.log(`🖼️ Controles configurados para: ${titulo}`);
-            }
         }
         
         // ==================== INSTALAÇÃO PWA ====================
@@ -1043,12 +1033,6 @@
                 renderizarPlaylist();
                 await carregarEstadoSalvo();
                 txtStatus.innerText = `${playlist.length} músicas carregadas`;
-                
-                // Configurar controles da tela bloqueada desde o início
-                if (playlist.length > 0 && ordemExecucao[indiceAtual] !== undefined) {
-                    const musica = playlist[ordemExecucao[indiceAtual]];
-                    atualizarTelaBloqueada(musica.nome, musica.artista, musica.capaUrl);
-                }
             } else {
                 txtStatus.innerText = "Clique em SINCRONIZAR para começar";
             }

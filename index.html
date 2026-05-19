@@ -511,6 +511,41 @@
         let atualBlobUrl = null;
         let db = null;
 
+        // ========== NOVA FUNCIONALIDADE: SALVAR ONDE PAROU ==========
+        function salvarEstado() {
+            if (acervoOriginal.length > 0 && ordemExecucao.length > 0) {
+                const estado = {
+                    indice: indiceAtual,
+                    tempo: player.currentTime || 0,
+                    tocando: !player.paused,
+                    shuffle: isShuffle,
+                    loop: isLoop,
+                    volume: player.volume
+                };
+                localStorage.setItem('exna_player_state', JSON.stringify(estado));
+            }
+        }
+
+        function restaurarEstado() {
+            const salvo = localStorage.getItem('exna_player_state');
+            if (salvo) {
+                try {
+                    const estado = JSON.parse(salvo);
+                    return estado;
+                } catch(e) { return null; }
+            }
+            return null;
+        }
+
+        // Salvar ao pausar, trocar música, ou antes de fechar
+        player.addEventListener('pause', () => salvarEstado());
+        player.addEventListener('play', () => salvarEstado());
+        window.addEventListener('beforeunload', () => salvarEstado());
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') salvarEstado();
+        });
+        // ========== FIM DA NOVA FUNCIONALIDADE ==========
+
         // MOTOR DO BANCO DE DADOS LOCAL (IndexedDB)
         const dbName = "ExnaMusicDB";
         const dbVersion = 1;
@@ -562,12 +597,44 @@
                     txtStatus.innerText = "Carregando catálogo salvo...";
                     acervoOriginal = faixasSalvas;
                     acervoOriginal.sort((a, b) => a.name.localeCompare(b.name));
+                    
+                    // ========== RESTAURAR ESTADO SALVO ==========
+                    const estadoSalvo = restaurarEstado();
+                    
                     montarOrdemExecucao();
                     
                     btn.disabled = false;
                     txtStatus.innerText = `${acervoOriginal.length} Tracks Restauradas!`;
                     renderizarPainelPlaylist();
-                    carregarFaixa(0);
+                    
+                    if (estadoSalvo && estadoSalvo.indice !== undefined && ordemExecucao.length > estadoSalvo.indice) {
+                        carregarFaixa(estadoSalvo.indice);
+                        
+                        // Restaurar tempo e play/pause
+                        if (estadoSalvo.tempo && player.duration) {
+                            player.currentTime = estadoSalvo.tempo;
+                        }
+                        if (estadoSalvo.tocando) {
+                            player.play().catch(e => console.log("Auto-play bloqueado"));
+                        }
+                        if (estadoSalvo.volume !== undefined) {
+                            player.volume = estadoSalvo.volume;
+                            const volInput = document.getElementById('volume');
+                            if (volInput) volInput.value = estadoSalvo.volume * 100;
+                        }
+                        if (estadoSalvo.shuffle !== undefined) {
+                            isShuffle = estadoSalvo.shuffle;
+                            shuffleBtn.classList.toggle('active', isShuffle);
+                        }
+                        if (estadoSalvo.loop !== undefined) {
+                            isLoop = estadoSalvo.loop;
+                            loopBtn.classList.toggle('active', isLoop);
+                            player.loop = isLoop;
+                        }
+                    } else {
+                        carregarFaixa(0);
+                    }
+                    // ========== FIM RESTAURAR ESTADO ==========
                 } else {
                     txtStatus.innerText = "Aguardando Seleção...";
                 }
@@ -651,6 +718,8 @@
             
             // Limpa o input para permitir selecionar a mesma pasta novamente se necessário
             picker.value = "";
+            
+            salvarEstado(); // Salvar após adicionar
         });
 
         function montarOrdemExecucao() {
@@ -684,7 +753,7 @@
                         ${ConvertName(faixa.name)}
                         <span id="list-artist-${faixa.idInterno}">${faixa.artist}</span>
                     </div>
-                    <button class="remove-track-btn" onclick="removerFaixaDoPlayer(event, ${idReal})">
+                    <button class="remove-track-btn" onclick="removerFaixaDoPlayer(event, ${faixa.idInterno})">
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 `;
@@ -731,6 +800,7 @@
         function pularParaMusicaDaLista(indexNaOrdem) {
             carregarFaixa(indexNaOrdem);
             player.play().catch(e => console.log(e));
+            salvarEstado();
         }
 
         function removerFaixaDoPlayer(event, idRealParaRemover) {
@@ -752,7 +822,9 @@
                 txtCover.src = 'logo-quadrada.png'; bgGlow.style.backgroundImage = "url('logo-quadrada.png')";
                 btn.disabled = true; icon.className = "fas fa-play"; card.classList.remove('playing');
                 txtStatus.innerText = "Aguardando Seleção...";
-                renderizarPainelPlaylist(); return;
+                renderizarPainelPlaylist();
+                localStorage.removeItem('exna_player_state');
+                return;
             }
 
             if (idNaOrdemQueVaiSumir === indiceAtual) {
@@ -765,6 +837,7 @@
             txtStatus.innerText = `${acervoOriginal.length} Músicas Restantes`;
             renderizarPainelPlaylist();
             marcarFaixaAtivaNaLista();
+            salvarEstado();
         }
 
         function marcarFaixaAtivaNaLista() {
@@ -805,6 +878,8 @@
 
                 marcarFaixaAtivaNaLista();
                 updateLockScreen(faixa.name, faixa.artist, faixa.thumbBase64);
+                
+                salvarEstado();
             } catch (err) {
                 console.error("Erro ao gerar URL do arquivo armazenado:", err);
                 proximaFaixa();
@@ -819,6 +894,7 @@
             } else {
                 player.pause();
             }
+            salvarEstado();
         }
 
         player.addEventListener('play', () => {
@@ -826,6 +902,7 @@
             btn.classList.add('active'); 
             card.classList.add('playing');
             if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "playing";
+            salvarEstado();
         });
 
         player.addEventListener('pause', () => {
@@ -833,18 +910,21 @@
             btn.classList.remove('active'); 
             card.classList.remove('playing');
             if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "paused";
+            salvarEstado();
         });
 
         function proximaFaixa() {
             if (ordemExecucao.length <= 1 && isLoop === false) return;
             carregarFaixa(indiceAtual + 1);
             player.play().catch(e => console.log("Erro ao passar próxima faixa:", e));
+            salvarEstado();
         }
 
         function voltarFaixa() {
             if (ordemExecucao.length <= 1) return;
             carregarFaixa(indiceAtual - 1);
             player.play().catch(e => console.log("Erro ao passar faixa anterior:", e));
+            salvarEstado();
         }
 
         function toggleShuffle() {
@@ -855,15 +935,20 @@
             indiceAtual = ordemExecucao.indexOf(idAtualReal);
             renderizarPainelPlaylist();
             marcarFaixaAtivaNaLista();
+            salvarEstado();
         }
 
         function toggleLoop() {
             isLoop = !isLoop;
             loopBtn.classList.toggle('active', isLoop);
             player.loop = isLoop;
+            salvarEstado();
         }
 
-        function ajustarVolume(valor) { player.volume = valor / 100; }
+        function ajustarVolume(valor) { 
+            player.volume = valor / 100;
+            salvarEstado();
+        }
 
         player.addEventListener('timeupdate', () => {
             if (isNaN(player.duration)) return;
@@ -876,6 +961,7 @@
         progressBar.addEventListener('input', () => {
             if (isNaN(player.duration)) return;
             player.currentTime = (progressBar.value / 100) * player.duration;
+            salvarEstado();
         });
 
         function formatarTempo(segs) {

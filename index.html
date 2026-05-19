@@ -510,14 +510,16 @@
         let isLoop = false;
         let atualBlobUrl = null;
         let db = null;
+        
+        let tempoAntesDeSair = 0;
+        let estavaTocandoAntesDeSair = false;
 
-        // ========== NOVA FUNCIONALIDADE: SALVAR ONDE PAROU ==========
+        // ========== FUNCIONALIDADE: SALVAR ONDE PAROU ==========
         function salvarEstado() {
             if (acervoOriginal.length > 0 && ordemExecucao.length > 0) {
                 const estado = {
                     indice: indiceAtual,
                     tempo: player.currentTime || 0,
-                    tocando: !player.paused,
                     shuffle: isShuffle,
                     loop: isLoop,
                     volume: player.volume
@@ -539,12 +541,100 @@
 
         // Salvar ao pausar, trocar música, ou antes de fechar
         player.addEventListener('pause', () => salvarEstado());
-        player.addEventListener('play', () => salvarEstado());
         window.addEventListener('beforeunload', () => salvarEstado());
+        
+        // ========== CORREÇÃO PARA O ÁUDIO FICAR MUDO ==========
+        // Quando o app sai de foco, guarda o estado
         document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'hidden') salvarEstado();
+            if (document.visibilityState === 'hidden') {
+                // App foi minimizado/saiu
+                tempoAntesDeSair = player.currentTime || 0;
+                estavaTocandoAntesDeSair = !player.paused;
+                salvarEstado();
+            } else if (document.visibilityState === 'visible') {
+                // App voltou a ficar visível
+                setTimeout(() => {
+                    // Verifica se o áudio está "quebrado" (tocando mas sem som)
+                    // Ou se o tempo mudou sem som (sinal de problema)
+                    if (acervoOriginal.length > 0 && ordemExecucao.length > 0) {
+                        // Se o tempo avançou mas o áudio está mudo OU se estava tocando antes e agora está pausado
+                        const tempoAtual = player.currentTime || 0;
+                        const diferencaTempo = Math.abs(tempoAtual - tempoAntesDeSair);
+                        
+                        // Se estava tocando antes e agora está pausado OU a diferença de tempo é muito pequena (preso)
+                        if ((estavaTocandoAntesDeSair && player.paused) || 
+                            (estavaTocandoAntesDeSair && !player.paused && diferencaTempo < 0.5 && tempoAtual > 0)) {
+                            
+                            console.log("Detectado áudio mudo! Recarregando...");
+                            
+                            // Salvar a faixa atual e o tempo
+                            const faixaAtual = ordemExecucao[indiceAtual];
+                            const tempoParaRestaurar = tempoAntesDeSair;
+                            
+                            // Recarregar a mesma faixa
+                            if (faixaAtual !== undefined) {
+                                const idReal = ordemExecucao[indiceAtual];
+                                const faixa = acervoOriginal[idReal];
+                                
+                                if (faixa && faixa.fileObject) {
+                                    // Recriar o blob URL e recarregar
+                                    if (atualBlobUrl) URL.revokeObjectURL(atualBlobUrl);
+                                    atualBlobUrl = URL.createObjectURL(faixa.fileObject);
+                                    player.src = atualBlobUrl;
+                                    player.load();
+                                    
+                                    // Quando carregar, restaura o tempo
+                                    const onLoaded = () => {
+                                        if (player.duration && !isNaN(player.duration) && tempoParaRestaurar < player.duration) {
+                                            player.currentTime = tempoParaRestaurar;
+                                        }
+                                        // Se estava tocando, volta a tocar
+                                        if (estavaTocandoAntesDeSair) {
+                                            player.play().catch(e => console.log("Erro ao retomar:", e));
+                                        }
+                                        player.removeEventListener('loadedmetadata', onLoaded);
+                                        player.removeEventListener('canplay', onLoaded);
+                                    };
+                                    player.addEventListener('loadedmetadata', onLoaded);
+                                    player.addEventListener('canplay', onLoaded);
+                                }
+                            }
+                        }
+                    }
+                }, 100);
+            }
         });
-        // ========== FIM DA NOVA FUNCIONALIDADE ==========
+        
+        // Também monitorar se o áudio ficou sem som durante a reprodução
+        let ultimoTempoRegistrado = 0;
+        let semSomDetectado = false;
+        
+        setInterval(() => {
+            if (!player.paused && acervoOriginal.length > 0) {
+                const tempoAtual = player.currentTime;
+                // Se o tempo não mudou em 2 segundos e a música não acabou, pode estar sem som
+                if (Math.abs(tempoAtual - ultimoTempoRegistrado) < 0.1 && tempoAtual > 0 && !semSomDetectado) {
+                    semSomDetectado = true;
+                    console.log("Possível áudio mudo detectado durante reprodução!");
+                    
+                    // Tenta recuperar sem recarregar totalmente
+                    const tempoAtualSalvo = tempoAtual;
+                    player.pause();
+                    setTimeout(() => {
+                        player.currentTime = tempoAtualSalvo;
+                        player.play().catch(e => console.log(e));
+                        setTimeout(() => { semSomDetectado = false; }, 1000);
+                    }, 50);
+                } else if (Math.abs(tempoAtual - ultimoTempoRegistrado) >= 0.1) {
+                    semSomDetectado = false;
+                }
+                ultimoTempoRegistrado = tempoAtual;
+            } else {
+                ultimoTempoRegistrado = 0;
+                semSomDetectado = false;
+            }
+        }, 2000);
+        // ========== FIM DA CORREÇÃO ==========
 
         // MOTOR DO BANCO DE DADOS LOCAL (IndexedDB)
         const dbName = "ExnaMusicDB";
@@ -598,7 +688,6 @@
                     acervoOriginal = faixasSalvas;
                     acervoOriginal.sort((a, b) => a.name.localeCompare(b.name));
                     
-                    // ========== RESTAURAR ESTADO SALVO ==========
                     const estadoSalvo = restaurarEstado();
                     
                     montarOrdemExecucao();
@@ -610,18 +699,25 @@
                     if (estadoSalvo && estadoSalvo.indice !== undefined && ordemExecucao.length > estadoSalvo.indice) {
                         carregarFaixa(estadoSalvo.indice);
                         
-                        // Restaurar tempo e play/pause
-                        if (estadoSalvo.tempo && player.duration) {
-                            player.currentTime = estadoSalvo.tempo;
-                        }
-                        if (estadoSalvo.tocando) {
-                            player.play().catch(e => console.log("Auto-play bloqueado"));
-                        }
+                        const restaurarTempo = () => {
+                            if (player.duration && !isNaN(player.duration) && estadoSalvo.tempo < player.duration) {
+                                player.currentTime = estadoSalvo.tempo;
+                                const pct = (player.currentTime / player.duration) * 100;
+                                progressBar.value = pct;
+                                timeCurrent.innerText = formatarTempo(player.currentTime);
+                            }
+                            player.removeEventListener('loadedmetadata', restaurarTempo);
+                            player.removeEventListener('canplay', restaurarTempo);
+                        };
+                        player.addEventListener('loadedmetadata', restaurarTempo);
+                        player.addEventListener('canplay', restaurarTempo);
+                        
                         if (estadoSalvo.volume !== undefined) {
                             player.volume = estadoSalvo.volume;
                             const volInput = document.getElementById('volume');
                             if (volInput) volInput.value = estadoSalvo.volume * 100;
                         }
+                        
                         if (estadoSalvo.shuffle !== undefined) {
                             isShuffle = estadoSalvo.shuffle;
                             shuffleBtn.classList.toggle('active', isShuffle);
@@ -634,7 +730,6 @@
                     } else {
                         carregarFaixa(0);
                     }
-                    // ========== FIM RESTAURAR ESTADO ==========
                 } else {
                     txtStatus.innerText = "Aguardando Seleção...";
                 }
@@ -646,7 +741,6 @@
             sidebar.classList.toggle('open');
         }
 
-        // FECHAR PLAYLIST AO CLICAR FORA
         document.addEventListener('click', (e) => {
             const hmbBtn = document.getElementById('hamburger-trigger');
             if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && !hmbBtn.contains(e.target)) {
@@ -654,7 +748,6 @@
             }
         });
 
-        // SWIPE TOUCH DETECTOR
         let touchStartX = 0;
         sidebar.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; });
         sidebar.addEventListener('touchend', (e) => {
@@ -664,7 +757,6 @@
             }
         });
 
-        // SELEÇÃO E ADIÇÃO CONTÍNUA CORRIGIDA
         picker.addEventListener('change', async (e) => {
             const files = Array.from(e.target.files);
             let audiosFiltrados = files.filter(file => file.name.toLowerCase().endsWith('.mp3') || file.name.toLowerCase().endsWith('.m4a'));
@@ -681,13 +773,12 @@
                 musicaAtualSalva = acervoOriginal[ordemExecucao[indiceAtual]];
             }
 
-            // CORREÇÃO: Evita colisão de IDs usando o Timestamp atual combinado com o index
             const baseId = Date.now();
 
             const novasTracks = audiosFiltrados.map((file, idx) => {
                 const trackObjeto = {
                     idInterno: baseId + idx, 
-                    fileObject: file, // O arquivo binário é salvo aqui de forma segura
+                    fileObject: file,
                     name: file.name.replace(/\.[^/.]+$/, "").toUpperCase(),
                     artist: "EXNA STUDIO",
                     thumbBase64: 'logo-quadrada.png'
@@ -697,7 +788,6 @@
                 return trackObjeto;
             });
 
-            // Une o acervo antigo com as novas músicas adicionadas, sem sobrescrever
             acervoOriginal = [...acervoOriginal, ...novasTracks];
             acervoOriginal.sort((a, b) => a.name.localeCompare(b.name));
             montarOrdemExecucao();
@@ -716,10 +806,9 @@
             renderizarPainelPlaylist();
             escanearCapasEmSegundoPlano(novasTracks);
             
-            // Limpa o input para permitir selecionar a mesma pasta novamente se necessário
             picker.value = "";
             
-            salvarEstado(); // Salvar após adicionar
+            salvarEstado();
         });
 
         function montarOrdemExecucao() {
@@ -986,10 +1075,18 @@
                     artwork: [{ src: capaUrl, sizes: '512x512', type: 'image/png' }]
                 });
                 
-                navigator.mediaSession.setActionHandler('play', () => { player.play().catch(e => console.log(e)); });
-                navigator.mediaSession.setActionHandler('pause', () => { player.pause(); });
-                navigator.mediaSession.setActionHandler('previoustrack', () => { voltarFaixa(); });
-                navigator.mediaSession.setActionHandler('nexttrack', () => { proximaFaixa(); });
+                navigator.mediaSession.setActionHandler('play', () => { 
+                    player.play().catch(e => console.log(e));
+                });
+                navigator.mediaSession.setActionHandler('pause', () => { 
+                    player.pause();
+                });
+                navigator.mediaSession.setActionHandler('previoustrack', () => { 
+                    voltarFaixa();
+                });
+                navigator.mediaSession.setActionHandler('nexttrack', () => { 
+                    proximaFaixa();
+                });
             }
         }
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>EXNA MUSIC</title>
+    <title>EXNA MUSIC - Google Drive Player</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
     
@@ -490,7 +490,7 @@
         const PASTA_ID = '1vcukZmaqRgdkg6hEe-zgMjY7H9VwwY9J'; 
         const API_KEY = 'AIzaSyBVpSXuoQT0jjh6nqzKo5U1IYlaP_qolSs'; 
         const DB_NAME = 'ExnaMusicDB';
-        const DB_VERSION = 8;
+        const DB_VERSION = 9;
 
         // ==================== ELEMENTOS ====================
         const player = document.getElementById('audio-core');
@@ -518,7 +518,6 @@
         let db = null;
         let sincronizando = false;
         let verificadorAtivo = null;
-        let ultimoTempoVerificado = 0;
         
         // ==================== FUNÇÕES DE BANCO DE DADOS ====================
         function abrirBancoDados() {
@@ -746,37 +745,24 @@
             iniciarVerificadorMusica();
         }
         
-        // ==================== VERIFICADOR DE MÚSICA (FORÇA A TROCA) ====================
+        // ==================== VERIFICADOR FORÇADO ====================
         function iniciarVerificadorMusica() {
             if (verificadorAtivo) clearInterval(verificadorAtivo);
             
             verificadorAtivo = setInterval(() => {
-                // Só verifica se estiver tocando e não estiver em loop
-                if (!player.paused && !modoLoop && player.duration > 0) {
-                    const tempoAtual = player.currentTime;
-                    const duracao = player.duration;
-                    
-                    // Se chegou a 98% da música ou faltam menos de 1 segundo
-                    if (duracao - tempoAtual <= 1.0) {
-                        console.log(`🎵 Verificador: música terminando (${tempoAtual.toFixed(1)}/${duracao.toFixed(1)}), trocando...`);
-                        
-                        // Pausa o verificador temporariamente para evitar múltiplas trocas
+                if (!player.paused && !modoLoop && player.duration > 0 && !isNaN(player.duration)) {
+                    const falta = player.duration - player.currentTime;
+                    if (falta <= 1.0 && falta > 0) {
+                        console.log(`🎵 Forçando troca: falta ${falta.toFixed(2)}s`);
                         clearInterval(verificadorAtivo);
                         verificadorAtivo = null;
-                        
-                        // Troca a música
                         proximaMusica();
-                        
-                        // Reinicia o verificador depois de um tempo
                         setTimeout(() => {
                             if (!verificadorAtivo) iniciarVerificadorMusica();
                         }, 1000);
                     }
-                    
-                    // Atualiza o último tempo verificado
-                    ultimoTempoVerificado = tempoAtual;
                 }
-            }, 500); // Verifica a cada 500ms
+            }, 500);
         }
         
         // ==================== FUNÇÕES DO PLAYER ====================
@@ -806,17 +792,14 @@
             
             if (wasPlaying) {
                 setTimeout(() => {
-                    player.play().catch(() => {
-                        console.log("Erro ao retomar, tentando novamente...");
-                        setTimeout(() => player.play().catch(() => {}), 500);
-                    });
+                    player.play().catch(() => {});
                 }, 200);
             }
             
             salvarEstado();
         }
         
-        // ==================== TELA BLOQUEADA ====================
+        // ==================== TELA BLOQUEADA (COM BOTÕES DE MÚSICA) ====================
         function atualizarTelaBloqueada(titulo, artista, capaUrl) {
             if (!('mediaSession' in navigator)) return;
             
@@ -832,10 +815,31 @@
                 ]
             });
             
-            navigator.mediaSession.setActionHandler('play', () => player.play().catch(() => {}));
-            navigator.mediaSession.setActionHandler('pause', () => player.pause());
-            navigator.mediaSession.setActionHandler('previoustrack', () => musicaAnterior());
-            navigator.mediaSession.setActionHandler('nexttrack', () => proximaMusica());
+            // PLAY
+            navigator.mediaSession.setActionHandler('play', () => {
+                console.log("🎮 Play via media session");
+                player.play().catch(() => {});
+            });
+            
+            // PAUSE
+            navigator.mediaSession.setActionHandler('pause', () => {
+                console.log("🎮 Pause via media session");
+                player.pause();
+            });
+            
+            // MÚSICA ANTERIOR
+            navigator.mediaSession.setActionHandler('previoustrack', () => {
+                console.log("🎮 Anterior via media session");
+                musicaAnterior();
+            });
+            
+            // PRÓXIMA MÚSICA
+            navigator.mediaSession.setActionHandler('nexttrack', () => {
+                console.log("🎮 Próximo via media session");
+                proximaMusica();
+            });
+            
+            console.log(`🎵 MediaSession: ${titulo}`);
         }
         
         function atualizarBarraProgresso() {
@@ -864,7 +868,7 @@
         
         function proximaMusica() {
             if (playlist.length === 0) return;
-            console.log(`⏩ Próxima música: índice ${indiceAtual} -> ${indiceAtual + 1}`);
+            console.log(`⏩ Próxima música: ${indiceAtual} -> ${indiceAtual + 1}`);
             carregarMusica(indiceAtual + 1);
             setTimeout(() => player.play().catch(() => {}), 300);
         }

@@ -2,8 +2,8 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exna Music</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>EXNA MUSIC - Google Drive Player</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
     
@@ -20,7 +20,7 @@
             --glass-border: rgba(255, 255, 255, 0.08);
         }
 
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
 
         body {
             background-color: var(--dark-bg);
@@ -124,7 +124,7 @@
             filter: drop-shadow(0 0 5px var(--neon-aqua));
         }
 
-        .scan-btn {
+        .sync-btn {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--neon-aqua);
             color: var(--neon-aqua);
@@ -141,7 +141,7 @@
             align-items: center;
             gap: 8px;
         }
-        .scan-btn:hover {
+        .sync-btn:hover {
             background: var(--neon-aqua);
             color: #000;
             box-shadow: 0 0 15px var(--neon-aqua);
@@ -274,7 +274,6 @@
             background: var(--neon-pink);
         }
 
-        /* MENU LATERAL SLIDE-OVER */
         .playlist-sidebar {
             position: fixed;
             top: 0;
@@ -282,13 +281,12 @@
             width: 100%;
             max-width: 320px;
             height: 100vh;
-            background: rgba(5, 6, 8, 0.94);
+            background: rgba(5, 6, 8, 0.98);
             backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
             border-left: 1px solid var(--glass-border);
             box-shadow: -10px 0 30px rgba(0,0,0,0.8);
             z-index: 9999;
-            transition: cubic-bezier(0.16, 1, 0.3, 1) 0.4s;
+            transition: right 0.3s ease;
             padding: 25px;
             display: flex;
             flex-direction: column;
@@ -319,7 +317,6 @@
             color: #aaa;
             font-size: 1.2rem;
             cursor: pointer;
-            transition: 0.2s;
         }
         .close-sidebar-btn:hover { color: var(--neon-pink); }
 
@@ -328,15 +325,12 @@
             overflow-y: auto;
             padding-right: 5px;
         }
-        .playlist-scroll-area::-webkit-scrollbar { width: 4px; }
-        .playlist-scroll-area::-webkit-scrollbar-thumb { background: var(--neon-aqua); border-radius: 10px; }
 
-        /* PLAYLIST COM CAPAS MINIATURA */
         .playlist-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 8px;
+            padding: 10px;
             border-radius: 10px;
             font-size: 0.85rem;
             cursor: pointer;
@@ -346,22 +340,20 @@
             margin-bottom: 6px;
             background: rgba(255, 255, 255, 0.01);
         }
-        .playlist-item:hover { background: rgba(255, 255, 255, 0.04); }
+        .playlist-item:hover { background: rgba(255, 255, 255, 0.08); }
         
         .playlist-item.current-track {
-            background: rgba(102, 252, 241, 0.1);
-            border: 1px solid rgba(102, 252, 241, 0.3);
+            background: rgba(102, 252, 241, 0.2);
+            border: 1px solid rgba(102, 252, 241, 0.4);
             color: var(--neon-aqua);
-            font-weight: 600;
         }
 
         .list-thumb {
-            width: 35px;
-            height: 35px;
+            width: 40px;
+            height: 40px;
             border-radius: 6px;
             object-fit: cover;
             background-color: #111;
-            border: 1px solid rgba(255,255,255,0.05);
         }
 
         .track-meta-box {
@@ -369,19 +361,9 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            text-align: left;
         }
-        .track-meta-box span { display: block; font-size: 0.7rem; color: #666; margin-top: 1px; }
-        .current-track .track-meta-box span { color: var(--neon-pink); }
-
-        .remove-track-btn {
-            background: transparent;
-            border: none;
-            color: #444;
-            cursor: pointer;
-            transition: 0.2s;
-            padding: 6px;
-        }
-        .remove-track-btn:hover { color: var(--neon-pink); }
+        .track-meta-box span { display: block; font-size: 0.7rem; color: #888; margin-top: 2px; }
 
         footer {
             padding: 20px;
@@ -392,26 +374,48 @@
             z-index: 1;
         }
         .social-links { margin-bottom: 10px; display: flex; justify-content: center; gap: 20px; }
-        .social-links a { color: var(--neon-aqua); font-size: 1.3rem; transition: 0.3s; }
+        .social-links a { color: var(--neon-aqua); font-size: 1.3rem; transition: 0.3s; text-decoration: none; }
         .social-links a:hover { color: var(--neon-pink); }
         .copyright { font-size: 0.7rem; color: #555; text-transform: uppercase; }
-    </style>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        button { touch-action: manipulation; }
+        
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 9998;
+            display: none;
+        }
+        .overlay.open { display: block; }
+    </style>
 </head>
 <body>
 
+    <div class="overlay" id="overlay" onclick="fecharSidebar()"></div>
     <div class="blur-background" id="bg-glow"></div>
-
-    <input type="file" id="directory-picker" multiple accept="audio/mp3, audio/*" style="display: none;">
 
     <div class="playlist-sidebar" id="sidebar">
         <div class="sidebar-header">
-            <h3><i class="fas fa-list-ul"></i> EXNA PLAYLIST</h3>
-            <button class="close-sidebar-btn" onclick="toggleSidebar()"><i class="fas fa-times"></i></button>
+            <h3><i class="fas fa-list-ul"></i> MINHA PLAYLIST</h3>
+            <button class="close-sidebar-btn" onclick="fecharSidebar()"><i class="fas fa-times"></i></button>
         </div>
         <div class="playlist-scroll-area" id="playlist-box">
-            <div style="text-align: center; color: #444; padding: 20px; font-size: 0.85rem;">Nenhuma track na agulha.</div>
+            <div style="text-align: center; color: #444; padding: 20px;">Carregando...</div>
         </div>
     </div>
 
@@ -423,16 +427,16 @@
                     <img src="logo-quadrada.png" class="radio-top-logo" alt="EXNA Logo">
                     <div class="radio-brand-text">
                         <h2>EXNA <span>MUSIC</span></h2>
-                        <p>Hardware Local Player</p>
+                        <p>Google Drive Player</p>
                     </div>
                 </div>
-                <button class="hamburger-btn" id="hamburger-trigger" onclick="toggleSidebar()" title="Abrir Playlist">
+                <button class="hamburger-btn" onclick="abrirSidebar()">
                     <i class="fas fa-bars"></i>
                 </button>
             </div>
 
-            <button class="scan-btn" onclick="document.getElementById('directory-picker').click()">
-                <i class="fas fa-music"></i> SELECIONAR PACOTE DE TRACKS
+            <button class="sync-btn" onclick="sincronizarGoogleDrive()">
+                <i class="fab fa-google-drive"></i> SINCRONIZAR COM DRIVE
             </button>
 
             <div class="cover-area">
@@ -440,8 +444,8 @@
             </div>
 
             <div class="info-area">
-                <h1 id="track-title">DECK VAZIO</h1>
-                <p id="artist-name">Selecione seus arquivos locais</p>
+                <h1 id="track-title">EXNA MUSIC</h1>
+                <p id="artist-name">Sincronize para começar</p>
             </div>
 
             <div class="progress-container">
@@ -451,13 +455,13 @@
             </div>
 
             <div class="controls-row">
-                <button class="nav-btn" id="shuffle-btn" onclick="toggleShuffle()" title="Modo Shuffle"><i class="fas fa-random"></i></button>
-                <button class="nav-btn" onclick="voltarFaixa()"><i class="fas fa-step-backward"></i></button>
-                <button class="play-btn" id="master-play" onclick="togglePlayer()" disabled>
+                <button class="nav-btn" id="shuffle-btn" onclick="toggleShuffle()"><i class="fas fa-random"></i></button>
+                <button class="nav-btn" onclick="musicaAnterior()"><i class="fas fa-step-backward"></i></button>
+                <button class="play-btn" id="master-play" onclick="togglePlayPause()" disabled>
                     <i class="fas fa-play" id="btn-icon"></i>
                 </button>
-                <button class="nav-btn" onclick="proximaFaixa()"><i class="fas fa-step-forward"></i></button>
-                <button class="nav-btn" id="loop-btn" onclick="toggleLoop()" title="Repetir Faixa"><i class="fas fa-redo"></i></button>
+                <button class="nav-btn" onclick="proximaMusica()"><i class="fas fa-step-forward"></i></button>
+                <button class="nav-btn" id="loop-btn" onclick="toggleLoop()"><i class="fas fa-redo"></i></button>
             </div>
 
             <div class="volume-container">
@@ -466,15 +470,15 @@
                 <i class="fas fa-volume-up"></i>
             </div>
             
-            <p id="status-text" style="margin-top:20px; font-size: 0.75rem; color: #45a29e; font-weight: bold; letter-spacing: 1px; text-transform: uppercase;">Aguardando Seleção...</p>
+            <p id="status-text" style="margin-top:20px; font-size: 0.75rem; color: #45a29e;">Aguardando sincronização</p>
         </div>
     </main>
 
     <footer>
         <div class="social-links">
-            <a href="https://www.instagram.com/naldoaoficial?igsh=d3FkMDM5a2xtaWE%3D&utm_source=qr" target="_blank"><i class="fab fa-instagram"></i></a>
-            <a href="https://youtube.com/@djnaldoaoficial?si=W56XFO0qNFh7zi1s" target="_blank"><i class="fab fa-youtube"></i></a>
-            <a href="https://www.tiktok.com/@djnaldoaoficial?_r=1&_t=ZS-914Y71XEeby" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/naldoaoficial" target="_blank"><i class="fab fa-instagram"></i></a>
+            <a href="https://youtube.com/@djnaldoaoficial" target="_blank"><i class="fab fa-youtube"></i></a>
+            <a href="https://www.tiktok.com/@djnaldoaoficial" target="_blank"><i class="fab fa-tiktok"></i></a>
         </div>
         <div class="copyright">EXNA MUSIC © 2026</div>
     </footer>
@@ -482,626 +486,573 @@
     <audio id="audio-core" crossorigin="anonymous" preload="auto"></audio>
 
     <script>
+        // ==================== CONFIGURAÇÕES ====================
+        const PASTA_ID = '1vcukZmaqRgdkg6hEe-zgMjY7H9VwwY9J'; 
+        const API_KEY = 'AIzaSyBVpSXuoQT0jjh6nqzKo5U1IYlaP_qolSs'; 
+        const DB_NAME = 'ExnaMusicDB';
+        const DB_VERSION = 5;
+
+        // ==================== ELEMENTOS ====================
         const player = document.getElementById('audio-core');
-        const btn = document.getElementById('master-play');
-        const icon = document.getElementById('btn-icon');
-        const card = document.getElementById('main-player');
-        const txtTitle = document.getElementById('track-title');
-        const txtArtist = document.getElementById('artist-name');
-        const txtCover = document.getElementById('track-cover');
+        const btnPlay = document.getElementById('master-play');
+        const iconPlay = document.getElementById('btn-icon');
+        const cardPlayer = document.getElementById('main-player');
+        const txtTitulo = document.getElementById('track-title');
+        const txtArtista = document.getElementById('artist-name');
+        const imgCapa = document.getElementById('track-cover');
         const bgGlow = document.getElementById('bg-glow');
         const txtStatus = document.getElementById('status-text');
         const playlistBox = document.getElementById('playlist-box');
-        const sidebar = document.getElementById('sidebar');
-        
         const progressBar = document.getElementById('progress');
-        const timeCurrent = document.getElementById('time-current');
-        const timeDuration = document.getElementById('time-duration');
+        const tempoAtualSpan = document.getElementById('time-current');
+        const tempoTotalSpan = document.getElementById('time-duration');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
         
-        const shuffleBtn = document.getElementById('shuffle-btn');
-        const loopBtn = document.getElementById('loop-btn');
-        const picker = document.getElementById('directory-picker');
-
-        let acervoOriginal = [];
-        let ordemExecucao = [];
-        let indiceAtual = 0;
-        
-        let isShuffle = false;
-        let isLoop = false;
-        let atualBlobUrl = null;
+        // ==================== VARIÁVEIS ====================
+        let playlist = [];           
+        let ordemExecucao = [];      
+        let indiceAtual = 0;         
+        let modoShuffle = false;
+        let modoLoop = false;
         let db = null;
+        let sincronizando = false;
         
-        let tempoAntesDeSair = 0;
-        let estavaTocandoAntesDeSair = false;
-
-        // ========== FUNCIONALIDADE: SALVAR ONDE PAROU ==========
-        function salvarEstado() {
-            if (acervoOriginal.length > 0 && ordemExecucao.length > 0) {
-                const estado = {
-                    indice: indiceAtual,
-                    tempo: player.currentTime || 0,
-                    shuffle: isShuffle,
-                    loop: isLoop,
-                    volume: player.volume
-                };
-                localStorage.setItem('exna_player_state', JSON.stringify(estado));
-            }
-        }
-
-        function restaurarEstado() {
-            const salvo = localStorage.getItem('exna_player_state');
-            if (salvo) {
-                try {
-                    const estado = JSON.parse(salvo);
-                    return estado;
-                } catch(e) { return null; }
-            }
-            return null;
-        }
-
-        // Salvar ao pausar, trocar música, ou antes de fechar
-        player.addEventListener('pause', () => salvarEstado());
-        window.addEventListener('beforeunload', () => salvarEstado());
-        
-        // ========== CORREÇÃO PARA O ÁUDIO FICAR MUDO ==========
-        // Quando o app sai de foco, guarda o estado
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'hidden') {
-                // App foi minimizado/saiu
-                tempoAntesDeSair = player.currentTime || 0;
-                estavaTocandoAntesDeSair = !player.paused;
-                salvarEstado();
-            } else if (document.visibilityState === 'visible') {
-                // App voltou a ficar visível
-                setTimeout(() => {
-                    // Verifica se o áudio está "quebrado" (tocando mas sem som)
-                    // Ou se o tempo mudou sem som (sinal de problema)
-                    if (acervoOriginal.length > 0 && ordemExecucao.length > 0) {
-                        // Se o tempo avançou mas o áudio está mudo OU se estava tocando antes e agora está pausado
-                        const tempoAtual = player.currentTime || 0;
-                        const diferencaTempo = Math.abs(tempoAtual - tempoAntesDeSair);
-                        
-                        // Se estava tocando antes e agora está pausado OU a diferença de tempo é muito pequena (preso)
-                        if ((estavaTocandoAntesDeSair && player.paused) || 
-                            (estavaTocandoAntesDeSair && !player.paused && diferencaTempo < 0.5 && tempoAtual > 0)) {
-                            
-                            console.log("Detectado áudio mudo! Recarregando...");
-                            
-                            // Salvar a faixa atual e o tempo
-                            const faixaAtual = ordemExecucao[indiceAtual];
-                            const tempoParaRestaurar = tempoAntesDeSair;
-                            
-                            // Recarregar a mesma faixa
-                            if (faixaAtual !== undefined) {
-                                const idReal = ordemExecucao[indiceAtual];
-                                const faixa = acervoOriginal[idReal];
-                                
-                                if (faixa && faixa.fileObject) {
-                                    // Recriar o blob URL e recarregar
-                                    if (atualBlobUrl) URL.revokeObjectURL(atualBlobUrl);
-                                    atualBlobUrl = URL.createObjectURL(faixa.fileObject);
-                                    player.src = atualBlobUrl;
-                                    player.load();
-                                    
-                                    // Quando carregar, restaura o tempo
-                                    const onLoaded = () => {
-                                        if (player.duration && !isNaN(player.duration) && tempoParaRestaurar < player.duration) {
-                                            player.currentTime = tempoParaRestaurar;
-                                        }
-                                        // Se estava tocando, volta a tocar
-                                        if (estavaTocandoAntesDeSair) {
-                                            player.play().catch(e => console.log("Erro ao retomar:", e));
-                                        }
-                                        player.removeEventListener('loadedmetadata', onLoaded);
-                                        player.removeEventListener('canplay', onLoaded);
-                                    };
-                                    player.addEventListener('loadedmetadata', onLoaded);
-                                    player.addEventListener('canplay', onLoaded);
-                                }
-                            }
-                        }
+        // ==================== FUNÇÕES DE BANCO DE DADOS ====================
+        function abrirBancoDados() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains('playlist')) {
+                        db.createObjectStore('playlist', { keyPath: 'id' });
                     }
-                }, 100);
-            }
-        });
-        
-        // Também monitorar se o áudio ficou sem som durante a reprodução
-        let ultimoTempoRegistrado = 0;
-        let semSomDetectado = false;
-        
-        setInterval(() => {
-            if (!player.paused && acervoOriginal.length > 0) {
-                const tempoAtual = player.currentTime;
-                // Se o tempo não mudou em 2 segundos e a música não acabou, pode estar sem som
-                if (Math.abs(tempoAtual - ultimoTempoRegistrado) < 0.1 && tempoAtual > 0 && !semSomDetectado) {
-                    semSomDetectado = true;
-                    console.log("Possível áudio mudo detectado durante reprodução!");
-                    
-                    // Tenta recuperar sem recarregar totalmente
-                    const tempoAtualSalvo = tempoAtual;
-                    player.pause();
-                    setTimeout(() => {
-                        player.currentTime = tempoAtualSalvo;
-                        player.play().catch(e => console.log(e));
-                        setTimeout(() => { semSomDetectado = false; }, 1000);
-                    }, 50);
-                } else if (Math.abs(tempoAtual - ultimoTempoRegistrado) >= 0.1) {
-                    semSomDetectado = false;
-                }
-                ultimoTempoRegistrado = tempoAtual;
-            } else {
-                ultimoTempoRegistrado = 0;
-                semSomDetectado = false;
-            }
-        }, 2000);
-        // ========== FIM DA CORREÇÃO ==========
-
-        // MOTOR DO BANCO DE DADOS LOCAL (IndexedDB)
-        const dbName = "ExnaMusicDB";
-        const dbVersion = 1;
-
-        function iniciarBancoDados() {
-            const request = indexedDB.open(dbName, dbVersion);
-
-            request.onupgradeneeded = (e) => {
-                let database = e.target.result;
-                if (!database.objectStoreNames.contains("tracks")) {
-                    database.createObjectStore("tracks", { keyPath: "idInterno" });
-                }
-            };
-
-            request.onsuccess = (e) => {
-                db = e.target.result;
-                recuperarAcervoSalvo();
-            };
-
-            request.onerror = (e) => {
-                console.error("Erro ao inicializar base IndexedDB:", e);
-                txtStatus.innerText = "Modo persistência offline inativo.";
-            };
-        }
-
-        function salvarTrackNoBanco(track) {
-            if (!db) return;
-            const transaction = db.transaction(["tracks"], "readwrite");
-            const store = transaction.objectStore("tracks");
-            store.put(track);
-        }
-
-        function removerTrackDoBanco(idInterno) {
-            if (!db) return;
-            const transaction = db.transaction(["tracks"], "readwrite");
-            const store = transaction.objectStore("tracks");
-            store.delete(idInterno);
-        }
-
-        function recuperarAcervoSalvo() {
-            if (!db) return;
-            const transaction = db.transaction(["tracks"], "readonly");
-            const store = transaction.objectStore("tracks");
-            const request = store.getAll();
-
-            request.onsuccess = () => {
-                const faixasSalvas = request.result;
-                if (faixasSalvas && faixasSalvas.length > 0) {
-                    txtStatus.innerText = "Carregando catálogo salvo...";
-                    acervoOriginal = faixasSalvas;
-                    acervoOriginal.sort((a, b) => a.name.localeCompare(b.name));
-                    
-                    const estadoSalvo = restaurarEstado();
-                    
-                    montarOrdemExecucao();
-                    
-                    btn.disabled = false;
-                    txtStatus.innerText = `${acervoOriginal.length} Tracks Restauradas!`;
-                    renderizarPainelPlaylist();
-                    
-                    if (estadoSalvo && estadoSalvo.indice !== undefined && ordemExecucao.length > estadoSalvo.indice) {
-                        carregarFaixa(estadoSalvo.indice);
-                        
-                        const restaurarTempo = () => {
-                            if (player.duration && !isNaN(player.duration) && estadoSalvo.tempo < player.duration) {
-                                player.currentTime = estadoSalvo.tempo;
-                                const pct = (player.currentTime / player.duration) * 100;
-                                progressBar.value = pct;
-                                timeCurrent.innerText = formatarTempo(player.currentTime);
-                            }
-                            player.removeEventListener('loadedmetadata', restaurarTempo);
-                            player.removeEventListener('canplay', restaurarTempo);
-                        };
-                        player.addEventListener('loadedmetadata', restaurarTempo);
-                        player.addEventListener('canplay', restaurarTempo);
-                        
-                        if (estadoSalvo.volume !== undefined) {
-                            player.volume = estadoSalvo.volume;
-                            const volInput = document.getElementById('volume');
-                            if (volInput) volInput.value = estadoSalvo.volume * 100;
-                        }
-                        
-                        if (estadoSalvo.shuffle !== undefined) {
-                            isShuffle = estadoSalvo.shuffle;
-                            shuffleBtn.classList.toggle('active', isShuffle);
-                        }
-                        if (estadoSalvo.loop !== undefined) {
-                            isLoop = estadoSalvo.loop;
-                            loopBtn.classList.toggle('active', isLoop);
-                            player.loop = isLoop;
-                        }
-                    } else {
-                        carregarFaixa(0);
+                    if (!db.objectStoreNames.contains('estado')) {
+                        db.createObjectStore('estado', { keyPath: 'chave' });
                     }
-                } else {
-                    txtStatus.innerText = "Aguardando Seleção...";
-                }
-            };
-        }
-
-        // CONTROLE DO SLIDE-OVER
-        function toggleSidebar() {
-            sidebar.classList.toggle('open');
-        }
-
-        document.addEventListener('click', (e) => {
-            const hmbBtn = document.getElementById('hamburger-trigger');
-            if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && !hmbBtn.contains(e.target)) {
-                sidebar.classList.remove('open');
-            }
-        });
-
-        let touchStartX = 0;
-        sidebar.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; });
-        sidebar.addEventListener('touchend', (e) => {
-            let touchEndX = e.changedTouches[0].screenX;
-            if (touchEndX - touchStartX > 80) {
-                sidebar.classList.remove('open');
-            }
-        });
-
-        picker.addEventListener('change', async (e) => {
-            const files = Array.from(e.target.files);
-            let audiosFiltrados = files.filter(file => file.name.toLowerCase().endsWith('.mp3') || file.name.toLowerCase().endsWith('.m4a'));
-
-            if (audiosFiltrados.length === 0) {
-                txtStatus.innerText = "Nenhum áudio compatível selecionado.";
-                return;
-            }
-
-            txtStatus.innerText = "Sincronizando novas tracks...";
-
-            let musicaAtualSalva = null;
-            if (acervoOriginal.length > 0 && ordemExecucao.length > 0) {
-                musicaAtualSalva = acervoOriginal[ordemExecucao[indiceAtual]];
-            }
-
-            const baseId = Date.now();
-
-            const novasTracks = audiosFiltrados.map((file, idx) => {
-                const trackObjeto = {
-                    idInterno: baseId + idx, 
-                    fileObject: file,
-                    name: file.name.replace(/\.[^/.]+$/, "").toUpperCase(),
-                    artist: "EXNA STUDIO",
-                    thumbBase64: 'logo-quadrada.png'
                 };
                 
-                salvarTrackNoBanco(trackObjeto);
-                return trackObjeto;
+                request.onsuccess = (e) => {
+                    db = e.target.result;
+                    resolve(db);
+                };
+                
+                request.onerror = (e) => reject(e);
             });
-
-            acervoOriginal = [...acervoOriginal, ...novasTracks];
-            acervoOriginal.sort((a, b) => a.name.localeCompare(b.name));
-            montarOrdemExecucao();
+        }
+        
+        async function salvarPlaylistNoBanco() {
+            if (!db || !playlist.length) return;
+            const tx = db.transaction(['playlist'], 'readwrite');
+            const store = tx.objectStore('playlist');
+            store.clear();
+            playlist.forEach(musica => store.put(musica));
+        }
+        
+        async function carregarPlaylistDoBanco() {
+            if (!db) return [];
+            return new Promise((resolve) => {
+                const tx = db.transaction(['playlist'], 'readonly');
+                const store = tx.objectStore('playlist');
+                const request = store.getAll();
+                request.onsuccess = () => resolve(request.result || []);
+                request.onerror = () => resolve([]);
+            });
+        }
+        
+        async function salvarEstado(tempo = null) {
+            if (!db) return;
+            const tx = db.transaction(['estado'], 'readwrite');
+            const store = tx.objectStore('estado');
             
-            if (musicaAtualSalva) {
-                let novoIndexNoAcervo = acervoOriginal.findIndex(m => m.idInterno === musicaAtualSalva.idInterno);
-                indiceAtual = ordemExecucao.indexOf(novoIndexNoAcervo);
-            } else {
+            const estado = {
+                chave: 'player_state',
+                indiceAtual: indiceAtual,
+                tempo: tempo !== null ? tempo : (player.currentTime || 0),
+                volume: player.volume,
+                shuffle: modoShuffle,
+                loop: modoLoop,
+                ordemExecucao: ordemExecucao,
+                playlistIds: playlist.map(m => m.id),
+                wasPlaying: !player.paused
+            };
+            store.put(estado);
+        }
+        
+        async function carregarEstado() {
+            if (!db) return null;
+            return new Promise((resolve) => {
+                const tx = db.transaction(['estado'], 'readonly');
+                const store = tx.objectStore('estado');
+                const request = store.get('player_state');
+                request.onsuccess = () => resolve(request.result || null);
+                request.onerror = () => resolve(null);
+            });
+        }
+        
+        // ==================== SINCRONIZAR COM GOOGLE DRIVE ====================
+        async function sincronizarGoogleDrive() {
+            if (sincronizando) return;
+            sincronizando = true;
+            txtStatus.innerHTML = '<span class="loading"></span> Sincronizando com Google Drive...';
+            
+            const url = `https://www.googleapis.com/drive/v3/files?q='${PASTA_ID}'+in+parents+and+trashed=false&fields=files(id,name,mimeType)&key=${API_KEY}&pageSize=1000`;
+            
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (!data.files || data.files.length === 0) {
+                    txtStatus.innerText = "Nenhum arquivo encontrado!";
+                    sincronizando = false;
+                    return;
+                }
+                
+                // PEGA TODOS OS MP3
+                const musicasDrive = data.files.filter(f => f.name.toLowerCase().endsWith('.mp3'));
+                const imagensDrive = data.files.filter(f => f.mimeType.includes('image') && (f.name.toLowerCase().endsWith('.jpg') || f.name.toLowerCase().endsWith('.png')));
+                
+                console.log(`📁 Total de MP3 encontrados: ${musicasDrive.length}`);
+                txtStatus.innerHTML = `<span class="loading"></span> Encontrados ${musicasDrive.length} MP3...`;
+                
+                if (musicasDrive.length === 0) {
+                    txtStatus.innerText = "Nenhum MP3 encontrado!";
+                    sincronizando = false;
+                    return;
+                }
+                
+                // Carregar playlist atual do banco
+                const playlistAtual = await carregarPlaylistDoBanco();
+                const mapaExistente = new Map();
+                playlistAtual.forEach(m => mapaExistente.set(m.id, m));
+                
+                // Processar TODAS as músicas
+                const musicasProcessadas = [];
+                
+                for (let i = 0; i < musicasDrive.length; i++) {
+                    const m = musicasDrive[i];
+                    const nomeCompleto = m.name;
+                    const nomeSemExtensao = nomeCompleto.replace(/\.mp3$/i, "");
+                    
+                    // Extrair artista e título
+                    let artista = "EXNA MUSIC";
+                    let titulo = nomeSemExtensao;
+                    
+                    const separador = nomeSemExtensao.indexOf(" - ");
+                    if (separador > 0) {
+                        artista = nomeSemExtensao.substring(0, separador).trim();
+                        titulo = nomeSemExtensao.substring(separador + 3).trim();
+                    }
+                    
+                    // PROCURA CAPA LOCAL (mesmo nome do arquivo)
+                    const capaLocal = imagensDrive.find(img => {
+                        const imgNome = img.name.replace(/\.(jpg|png|jpeg)$/i, "");
+                        return imgNome === nomeSemExtensao;
+                    });
+                    
+                    let capaUrl = capaLocal ? `https://www.googleapis.com/drive/v3/files/${capaLocal.id}?alt=media&key=${API_KEY}` : null;
+                    
+                    // Se já existia, mantém a capa que tinha
+                    const existente = mapaExistente.get(m.id);
+                    if (existente && existente.capaUrl && existente.capaUrl !== 'logo-quadrada.png') {
+                        capaUrl = existente.capaUrl;
+                    }
+                    
+                    musicasProcessadas.push({
+                        id: m.id,
+                        nome: titulo,
+                        artista: artista,
+                        capaUrl: capaUrl || 'logo-quadrada.png',
+                        url: `https://www.googleapis.com/drive/v3/files/${m.id}?alt=media&key=${API_KEY}`
+                    });
+                    
+                    if ((i + 1) % 20 === 0) {
+                        txtStatus.innerHTML = `<span class="loading"></span> Processando: ${i+1}/${musicasDrive.length}`;
+                    }
+                }
+                
+                playlist = musicasProcessadas;
+                await salvarPlaylistNoBanco();
+                
+                txtStatus.innerText = `✅ ${playlist.length} músicas sincronizadas!`;
+                console.log(`📊 Total sincronizado: ${playlist.length} músicas`);
+                
+                // Inicializar ordem de execução
+                if (ordemExecucao.length === 0 || ordemExecucao.length !== playlist.length) {
+                    ordemExecucao = playlist.map((_, i) => i);
+                    if (modoShuffle) {
+                        for (let i = ordemExecucao.length - 1; i > 0; i--) {
+                            const j = Math.floor(Math.random() * (i + 1));
+                            [ordemExecucao[i], ordemExecucao[j]] = [ordemExecucao[j], ordemExecucao[i]];
+                        }
+                    }
+                }
+                
+                btnPlay.disabled = false;
+                renderizarPlaylist();
+                await carregarEstadoSalvo();
+                
+            } catch (e) {
+                console.error(e);
+                txtStatus.innerText = "Erro ao sincronizar!";
+            } finally {
+                sincronizando = false;
+            }
+        }
+        
+        // ==================== CARREGAR ESTADO SALVO ====================
+        async function carregarEstadoSalvo() {
+            const estado = await carregarEstado();
+            console.log("📀 Estado carregado:", estado);
+            
+            if (estado && estado.playlistIds && estado.ordemExecucao) {
+                const idsAtuais = playlist.map(m => m.id);
+                const valido = estado.playlistIds.length === idsAtuais.length && 
+                              estado.playlistIds.every(id => idsAtuais.includes(id));
+                
+                if (valido && estado.ordemExecucao.length === playlist.length) {
+                    ordemExecucao = estado.ordemExecucao;
+                    indiceAtual = estado.indiceAtual;
+                    if (indiceAtual >= ordemExecucao.length) indiceAtual = 0;
+                } else {
+                    ordemExecucao = playlist.map((_, i) => i);
+                    indiceAtual = 0;
+                }
+            } else if (playlist.length > 0) {
+                ordemExecucao = playlist.map((_, i) => i);
                 indiceAtual = 0;
-                carregarFaixa(0);
             }
             
-            btn.disabled = false;
-            txtStatus.innerText = `${acervoOriginal.length} Músicas no Catálogo!`;
+            // Restaurar modos
+            if (estado) {
+                modoShuffle = estado.shuffle || false;
+                modoLoop = estado.loop || false;
+                document.getElementById('shuffle-btn').classList.toggle('active', modoShuffle);
+                document.getElementById('loop-btn').classList.toggle('active', modoLoop);
+                player.loop = modoLoop;
+                if (estado.volume !== undefined) {
+                    player.volume = estado.volume;
+                    document.getElementById('volume').value = estado.volume * 100;
+                }
+            }
             
-            renderizarPainelPlaylist();
-            escanearCapasEmSegundoPlano(novasTracks);
+            // Carregar primeira música
+            if (playlist.length > 0 && ordemExecucao.length > 0) {
+                carregarMusica(indiceAtual);
+                
+                // Restaurar tempo
+                if (estado && estado.tempo !== undefined && estado.tempo > 0) {
+                    const restaurarTempo = () => {
+                        if (player.duration && !isNaN(player.duration) && estado.tempo < player.duration) {
+                            player.currentTime = estado.tempo;
+                            atualizarBarraProgresso();
+                            console.log(`⏰ Tempo restaurado: ${estado.tempo.toFixed(2)}s`);
+                        }
+                        player.removeEventListener('loadedmetadata', restaurarTempo);
+                        player.removeEventListener('canplay', restaurarTempo);
+                    };
+                    player.addEventListener('loadedmetadata', restaurarTempo);
+                    player.addEventListener('canplay', restaurarTempo);
+                }
+                
+                // Se estava tocando antes, volta a tocar
+                if (estado && estado.wasPlaying) {
+                    setTimeout(() => {
+                        player.play().catch(() => {});
+                    }, 500);
+                }
+            }
             
-            picker.value = "";
+            renderizarPlaylist();
+        }
+        
+        // ==================== FUNÇÕES DO PLAYER ====================
+        function carregarMusica(index) {
+            if (playlist.length === 0 || ordemExecucao.length === 0) return;
+            
+            if (index >= ordemExecucao.length) index = 0;
+            if (index < 0) index = ordemExecucao.length - 1;
+            indiceAtual = index;
+            
+            const idReal = ordemExecucao[indiceAtual];
+            const musica = playlist[idReal];
+            if (!musica) return;
+            
+            const wasPlaying = !player.paused;
+            player.pause();
+            player.src = musica.url;
+            player.load();
+            
+            txtTitulo.innerText = musica.nome.toUpperCase();
+            txtArtista.innerText = musica.artista;
+            imgCapa.src = musica.capaUrl;
+            bgGlow.style.backgroundImage = `url('${musica.capaUrl}')`;
+            
+            atualizarTelaBloqueada(musica.nome, musica.artista, musica.capaUrl);
+            renderizarPlaylist();
+            
+            if (wasPlaying) {
+                setTimeout(() => player.play().catch(() => {}), 200);
+            }
             
             salvarEstado();
-        });
-
-        function montarOrdemExecucao() {
-            ordemExecucao = acervoOriginal.map((_, i) => i);
-            if (isShuffle) {
+        }
+        
+        function atualizarBarraProgresso() {
+            if (player.duration && !isNaN(player.duration) && player.duration > 0) {
+                const pct = (player.currentTime / player.duration) * 100;
+                progressBar.value = pct;
+                tempoAtualSpan.innerText = formatarTempo(player.currentTime);
+                tempoTotalSpan.innerText = formatarTempo(player.duration);
+            } else if (player.currentTime > 0) {
+                tempoAtualSpan.innerText = formatarTempo(player.currentTime);
+            }
+        }
+        
+        function formatarTempo(segundos) {
+            if (isNaN(segundos) || segundos === Infinity) return "0:00";
+            const min = Math.floor(segundos / 60);
+            const sec = Math.floor(segundos % 60);
+            return `${min}:${sec < 10 ? '0' + sec : sec}`;
+        }
+        
+        function togglePlayPause() {
+            if (player.paused) {
+                player.play().catch(() => {});
+            } else {
+                player.pause();
+            }
+        }
+        
+        function proximaMusica() {
+            if (playlist.length === 0) return;
+            carregarMusica(indiceAtual + 1);
+            player.play().catch(() => {});
+        }
+        
+        function musicaAnterior() {
+            if (playlist.length === 0) return;
+            if (player.currentTime > 3) {
+                player.currentTime = 0;
+                salvarEstado();
+            } else {
+                carregarMusica(indiceAtual - 1);
+                player.play().catch(() => {});
+            }
+        }
+        
+        function toggleShuffle() {
+            modoShuffle = !modoShuffle;
+            document.getElementById('shuffle-btn').classList.toggle('active', modoShuffle);
+            
+            const musicaAtual = playlist[ordemExecucao[indiceAtual]];
+            
+            if (modoShuffle) {
                 for (let i = ordemExecucao.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
                     [ordemExecucao[i], ordemExecucao[j]] = [ordemExecucao[j], ordemExecucao[i]];
                 }
-            }
-        }
-
-        function renderizarPainelPlaylist() {
-            playlistBox.innerHTML = "";
-            if(acervoOriginal.length === 0) {
-                playlistBox.innerHTML = '<div style="text-align: center; color: #444; padding: 20px; font-size: 0.85rem;">Nenhuma track na agulha.</div>';
-                return;
-            }
-
-            ordemExecucao.forEach((idReal, indexNaOrdem) => {
-                const faixa = acervoOriginal[idReal];
-                if (!faixa) return;
-                
-                const item = document.createElement('div');
-                item.className = `playlist-item ${indexNaOrdem === indiceAtual ? 'current-track' : ''}`;
-                item.setAttribute('onclick', `pularParaMusicaDaLista(${indexNaOrdem})`);
-
-                item.innerHTML = `
-                    <img src="${faixa.thumbBase64}" id="list-img-${faixa.idInterno}" class="list-thumb" alt="Thumb">
-                    <div class="track-meta-box">
-                        ${ConvertName(faixa.name)}
-                        <span id="list-artist-${faixa.idInterno}">${faixa.artist}</span>
-                    </div>
-                    <button class="remove-track-btn" onclick="removerFaixaDoPlayer(event, ${faixa.idInterno})">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                `;
-                playlistBox.appendChild(item);
-            });
-        }
-
-        function escanearCapasEmSegundoPlano(listaParaEscanear = acervoOriginal) {
-            listaParaEscanear.forEach(faixa => {
-                if (!faixa.fileObject) return;
-                
-                jsmediatags.read(faixa.fileObject, {
-                    onSuccess: function(tag) {
-                        let artistaTag = tag.tags.artist ? tag.tags.artist.toUpperCase() : "EXNA STUDIO";
-                        faixa.artist = artistaTag;
-                        
-                        let image = tag.tags.picture;
-                        if (image) {
-                            let base64String = "";
-                            for (let i = 0; i < image.data.length; i++) { base64String += String.fromCharCode(image.data[i]); }
-                            let base64 = "data:" + image.format + ";base64," + window.btoa(base64String);
-                            faixa.thumbBase64 = base64;
-                            
-                            const imgEl = document.getElementById(`list-img-${faixa.idInterno}`);
-                            const artEl = document.getElementById(`list-artist-${faixa.idInterno}`);
-                            if(imgEl) imgEl.src = base64;
-                            if(artEl) artEl.innerText = artistaTag;
-                            
-                            if (ordemExecucao[indiceAtual] === acervoOriginal.findIndex(m => m.idInterno === faixa.idInterno)) {
-                                txtCover.src = base64;
-                                bgGlow.style.backgroundImage = `url('${base64}')`;
-                                updateLockScreen(faixa.name, artistaTag, base64);
-                            }
-                        }
-                        salvarTrackNoBanco(faixa);
-                    },
-                    onError: function(error) {
-                        console.log("Sem metadados para esta faixa, mantendo padrão.", error);
-                    }
-                });
-            });
-        }
-
-        function pularParaMusicaDaLista(indexNaOrdem) {
-            carregarFaixa(indexNaOrdem);
-            player.play().catch(e => console.log(e));
-            salvarEstado();
-        }
-
-        function removerFaixaDoPlayer(event, idRealParaRemover) {
-            event.stopPropagation();
-            const indexNoAcervo = acervoOriginal.findIndex(m => m.idInterno === idRealParaRemover);
-            if(indexNoAcervo === -1) return;
-
-            const idNaOrdemQueVaiSumir = ordemExecucao.indexOf(indexNoAcervo);
-            
-            removerTrackDoBanco(acervoOriginal[indexNoAcervo].idInterno);
-            
-            acervoOriginal.splice(indexNoAcervo, 1);
-            montarOrdemExecucao();
-
-            if (acervoOriginal.length === 0) {
-                if (atualBlobUrl) { URL.revokeObjectURL(atualBlobUrl); atualBlobUrl = null; }
-                player.pause(); player.removeAttribute('src'); player.load();
-                txtTitle.innerText = "DECK VAZIO"; txtArtist.innerText = "Selecione seus arquivos locais";
-                txtCover.src = 'logo-quadrada.png'; bgGlow.style.backgroundImage = "url('logo-quadrada.png')";
-                btn.disabled = true; icon.className = "fas fa-play"; card.classList.remove('playing');
-                txtStatus.innerText = "Aguardando Seleção...";
-                renderizarPainelPlaylist();
-                localStorage.removeItem('exna_player_state');
-                return;
-            }
-
-            if (idNaOrdemQueVaiSumir === indiceAtual) {
-                carregarFaixa(indiceAtual >= ordemExecucao.length ? 0 : indiceAtual);
-                if (!player.paused) player.play().catch(e => console.log(e));
-            } else if (idNaOrdemQueVaiSumir < indiceAtual) {
-                indiceAtual--;
-            }
-
-            txtStatus.innerText = `${acervoOriginal.length} Músicas Restantes`;
-            renderizarPainelPlaylist();
-            marcarFaixaAtivaNaLista();
-            salvarEstado();
-        }
-
-        function marcarFaixaAtivaNaLista() {
-            const itens = document.querySelectorAll('.playlist-item');
-            itens.forEach((item, idx) => {
-                if (idx === indiceAtual) {
-                    item.classList.add('current-track');
-                    item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                } else {
-                    item.classList.remove('current-track');
-                }
-            });
-        }
-
-        function carregarFaixa(index) {
-            if (ordemExecucao.length === 0) return;
-
-            if (index >= ordemExecucao.length) index = 0;
-            if (index < 0) index = ordemExecucao.length - 1;
-            indiceAtual = index;
-
-            const idReal = ordemExecucao[indiceAtual];
-            const faixa = acervoOriginal[idReal];
-
-            if (!faixa) return;
-
-            if (atualBlobUrl) { URL.revokeObjectURL(atualBlobUrl); }
-            
-            try {
-                atualBlobUrl = URL.createObjectURL(faixa.fileObject);
-                player.src = atualBlobUrl;
-                player.load();
-                
-                txtTitle.innerText = ConvertName(faixa.name);
-                txtArtist.innerText = faixa.artist;
-                txtCover.src = faixa.thumbBase64;
-                bgGlow.style.backgroundImage = `url('${faixa.thumbBase64}')`;
-
-                marcarFaixaAtivaNaLista();
-                updateLockScreen(faixa.name, faixa.artist, faixa.thumbBase64);
-                
-                salvarEstado();
-            } catch (err) {
-                console.error("Erro ao gerar URL do arquivo armazenado:", err);
-                proximaFaixa();
-            }
-        }
-
-        function ConvertName(str) { return str.replace(/_/g, " ").toUpperCase(); }
-
-        function togglePlayer() {
-            if (player.paused) {
-                player.play().catch(e => console.log(e));
             } else {
-                player.pause();
+                ordemExecucao = playlist.map((_, i) => i);
             }
+            
+            indiceAtual = ordemExecucao.findIndex(i => playlist[i].id === musicaAtual.id);
+            if (indiceAtual === -1) indiceAtual = 0;
+            
+            renderizarPlaylist();
             salvarEstado();
         }
-
-        player.addEventListener('play', () => {
-            icon.className = "fas fa-stop"; 
-            btn.classList.add('active'); 
-            card.classList.add('playing');
-            if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "playing";
-            salvarEstado();
-        });
-
-        player.addEventListener('pause', () => {
-            icon.className = "fas fa-play"; 
-            btn.classList.remove('active'); 
-            card.classList.remove('playing');
-            if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "paused";
-            salvarEstado();
-        });
-
-        function proximaFaixa() {
-            if (ordemExecucao.length <= 1 && isLoop === false) return;
-            carregarFaixa(indiceAtual + 1);
-            player.play().catch(e => console.log("Erro ao passar próxima faixa:", e));
-            salvarEstado();
-        }
-
-        function voltarFaixa() {
-            if (ordemExecucao.length <= 1) return;
-            carregarFaixa(indiceAtual - 1);
-            player.play().catch(e => console.log("Erro ao passar faixa anterior:", e));
-            salvarEstado();
-        }
-
-        function toggleShuffle() {
-            isShuffle = !isShuffle;
-            shuffleBtn.classList.toggle('active', isShuffle);
-            const idAtualReal = ordemExecucao[indiceAtual];
-            montarOrdemExecucao();
-            indiceAtual = ordemExecucao.indexOf(idAtualReal);
-            renderizarPainelPlaylist();
-            marcarFaixaAtivaNaLista();
-            salvarEstado();
-        }
-
+        
         function toggleLoop() {
-            isLoop = !isLoop;
-            loopBtn.classList.toggle('active', isLoop);
-            player.loop = isLoop;
+            modoLoop = !modoLoop;
+            document.getElementById('loop-btn').classList.toggle('active', modoLoop);
+            player.loop = modoLoop;
             salvarEstado();
         }
-
-        function ajustarVolume(valor) { 
+        
+        function ajustarVolume(valor) {
             player.volume = valor / 100;
             salvarEstado();
         }
-
-        player.addEventListener('timeupdate', () => {
-            if (isNaN(player.duration)) return;
-            const pct = (player.currentTime / player.duration) * 100;
-            progressBar.value = pct;
-            timeCurrent.innerText = formatarTempo(player.currentTime);
-            timeDuration.innerText = formatarTempo(player.duration);
+        
+        // ==================== EVENTOS DO PLAYER ====================
+        player.addEventListener('play', () => {
+            iconPlay.className = "fas fa-stop";
+            btnPlay.classList.add('active');
+            cardPlayer.classList.add('playing');
+            if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "playing";
+            txtStatus.innerText = "🎵 Tocando...";
+            if (playlist.length > 0 && ordemExecucao[indiceAtual] !== undefined) {
+                const musica = playlist[ordemExecucao[indiceAtual]];
+                atualizarTelaBloqueada(musica.nome, musica.artista, musica.capaUrl);
+            }
         });
-
-        progressBar.addEventListener('input', () => {
-            if (isNaN(player.duration)) return;
-            player.currentTime = (progressBar.value / 100) * player.duration;
+        
+        player.addEventListener('pause', () => {
+            iconPlay.className = "fas fa-play";
+            btnPlay.classList.remove('active');
+            cardPlayer.classList.remove('playing');
+            if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "paused";
+            txtStatus.innerText = "⏸️ Pausado";
             salvarEstado();
         });
-
-        function formatarTempo(segs) {
-            let min = Math.floor(segs / 60); let sec = Math.floor(segs % 60);
-            if (sec < 10) sec = "0" + sec; return min + ":" + sec;
-        }
-
+        
         player.addEventListener('ended', () => {
-            if (isLoop) return;
-            proximaFaixa();
+            console.log("🎵 Música terminou, tocando próxima!");
+            if (!modoLoop) {
+                proximaMusica();
+            }
+        });
+        
+        player.addEventListener('timeupdate', () => {
+            atualizarBarraProgresso();
         });
         
         player.addEventListener('error', (e) => {
-            console.log("Erro detectado no core de áudio.", e);
-            if(acervoOriginal.length > 1) proximaFaixa();
+            console.error("Erro no áudio:", e);
+            txtStatus.innerText = "Erro na música, pulando...";
+            setTimeout(() => proximaMusica(), 1000);
         });
-
-        function updateLockScreen(title, artist, capaUrl) {
+        
+        progressBar.addEventListener('input', () => {
+            if (player.duration && !isNaN(player.duration)) {
+                player.currentTime = (progressBar.value / 100) * player.duration;
+                salvarEstado();
+            }
+        });
+        
+        window.addEventListener('beforeunload', () => {
+            salvarEstado();
+        });
+        
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                salvarEstado();
+            }
+        });
+        
+        // ==================== INTERFACE DA PLAYLIST ====================
+        function renderizarPlaylist() {
+            if (!playlistBox) return;
+            playlistBox.innerHTML = "";
+            
+            if (playlist.length === 0) {
+                playlistBox.innerHTML = '<div style="text-align: center; color: #444; padding: 20px;">Nenhuma música carregada</div>';
+                return;
+            }
+            
+            ordemExecucao.forEach((idReal, idx) => {
+                const musica = playlist[idReal];
+                const div = document.createElement('div');
+                div.className = `playlist-item ${idx === indiceAtual ? 'current-track' : ''}`;
+                div.onclick = () => {
+                    carregarMusica(idx);
+                    player.play().catch(() => {});
+                    fecharSidebar();
+                };
+                div.innerHTML = `
+                    <img src="${musica.capaUrl}" class="list-thumb" onerror="this.src='logo-quadrada.png'">
+                    <div class="track-meta-box">
+                        <strong>${musica.nome.substring(0, 30)}</strong>
+                        <span>${musica.artista}</span>
+                    </div>
+                `;
+                playlistBox.appendChild(div);
+            });
+        }
+        
+        function abrirSidebar() {
+            sidebar.classList.add('open');
+            overlay.classList.add('open');
+        }
+        
+        function fecharSidebar() {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('open');
+        }
+        
+        // ==================== TELA BLOQUEADA / NOTIFICAÇÃO ====================
+        function atualizarTelaBloqueada(titulo, artista, capaUrl) {
             if ('mediaSession' in navigator) {
+                const imagemUrl = (capaUrl && capaUrl !== 'logo-quadrada.png') ? capaUrl : 'logo-quadrada.png';
+                
                 navigator.mediaSession.metadata = new MediaMetadata({
-                    title: ConvertName(title), artist: artist, album: 'EXNA MUSIC',
-                    artwork: [{ src: capaUrl, sizes: '512x512', type: 'image/png' }]
+                    title: titulo || 'EXNA MUSIC',
+                    artist: artista || 'EXNA',
+                    album: 'EXNA MUSIC PLAYER',
+                    artwork: [
+                        { src: imagemUrl, sizes: '512x512', type: 'image/png' },
+                        { src: 'logo-quadrada.png', sizes: '512x512', type: 'image/png' }
+                    ]
                 });
                 
-                navigator.mediaSession.setActionHandler('play', () => { 
-                    player.play().catch(e => console.log(e));
+                // CRUCIAL: Configurar os handlers para os botões do fone/notificação
+                navigator.mediaSession.setActionHandler('play', () => {
+                    player.play().catch(() => {});
                 });
-                navigator.mediaSession.setActionHandler('pause', () => { 
+                navigator.mediaSession.setActionHandler('pause', () => {
                     player.pause();
                 });
-                navigator.mediaSession.setActionHandler('previoustrack', () => { 
-                    voltarFaixa();
+                navigator.mediaSession.setActionHandler('previoustrack', () => {
+                    musicaAnterior();
                 });
-                navigator.mediaSession.setActionHandler('nexttrack', () => { 
-                    proximaFaixa();
+                navigator.mediaSession.setActionHandler('nexttrack', () => {
+                    proximaMusica();
                 });
+                navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+                    player.currentTime = Math.max(player.currentTime - (details.seekOffset || 10), 0);
+                });
+                navigator.mediaSession.setActionHandler('seekforward', (details) => {
+                    player.currentTime = Math.min(player.currentTime + (details.seekOffset || 10), player.duration);
+                });
+                
+                console.log(`🖼️ Controles configurados para: ${titulo}`);
             }
         }
-
-        window.addEventListener('DOMContentLoaded', iniciarBancoDados);
-    </script>
-    
-    <!-- REGISTRO DO SERVICE WORKER DO PWA -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('sw.js')
-            .then(reg => console.log('EXNA MUSIC PWA: Ativado com sucesso!', reg.scope))
-            .catch(err => console.log('Erro ao registrar PWA:', err));
+        
+        // ==================== INSTALAÇÃO PWA ====================
+        let deferredPrompt;
+        const pwaBtn = document.createElement('button');
+        pwaBtn.style.cssText = "position:fixed;bottom:20px;right:20px;width:50px;height:50px;border-radius:50%;background:#ff0055;color:#fff;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;z-index:999;font-size:1.3rem;box-shadow:0 0 15px #ff0055;";
+        pwaBtn.innerHTML = '<i class="fas fa-download"></i>';
+        document.body.appendChild(pwaBtn);
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            pwaBtn.style.display = 'flex';
         });
-      }
+        
+        pwaBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt = null;
+                pwaBtn.style.display = 'none';
+            }
+        });
+        
+        // ==================== INICIALIZAÇÃO ====================
+        (async function init() {
+            await abrirBancoDados();
+            const playlistSalva = await carregarPlaylistDoBanco();
+            if (playlistSalva.length > 0) {
+                playlist = playlistSalva;
+                ordemExecucao = playlist.map((_, i) => i);
+                btnPlay.disabled = false;
+                renderizarPlaylist();
+                await carregarEstadoSalvo();
+                txtStatus.innerText = `${playlist.length} músicas carregadas`;
+                
+                // Configurar controles da tela bloqueada desde o início
+                if (playlist.length > 0 && ordemExecucao[indiceAtual] !== undefined) {
+                    const musica = playlist[ordemExecucao[indiceAtual]];
+                    atualizarTelaBloqueada(musica.nome, musica.artista, musica.capaUrl);
+                }
+            } else {
+                txtStatus.innerText = "Clique em SINCRONIZAR para começar";
+            }
+        })();
     </script>
 </body>
 </html>

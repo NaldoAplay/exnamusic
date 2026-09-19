@@ -9,46 +9,48 @@
     <link rel="icon" type="image/png" href="icon.png">
     <style>
         :root {
-            --bg-gradient: linear-gradient(135deg, #0d0f18 0%, #1a1c29 50%, #090a0f 100%);
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.12);
-            --glass-hover: rgba(255, 255, 255, 0.1);
-            --accent-gradient: linear-gradient(135deg, #8a2be2 0%, #ff1493 100%);
-            --accent-solid: #ff1493;
+            --bg-gradient: linear-gradient(135deg, #090a0f 0%, #151828 50%, #090a0f 100%);
+            --glass-bg: rgba(255, 255, 255, 0.04);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-hover: rgba(255, 255, 255, 0.08);
+            --accent-gradient: linear-gradient(135deg, #9333ea 0%, #ec4899 100%);
+            --accent-solid: #ec4899;
             --text-primary: #ffffff;
-            --text-secondary: rgba(255, 255, 255, 0.6);
-            --blur-strength: blur(25px);
-            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            --text-secondary: rgba(255, 255, 255, 0.5);
+            --blur-strength: blur(30px);
+            --shadow: 0 10px 40px 0 rgba(0, 0, 0, 0.5);
         }
 
         [data-theme="light-pearl"] {
-            --bg-gradient: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 50%, #bcccdc 100%);
-            --glass-bg: rgba(255, 255, 255, 0.65);
-            --glass-border: rgba(255, 255, 255, 0.8);
-            --glass-hover: rgba(255, 255, 255, 0.9);
-            --accent-gradient: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%);
-            --accent-solid: #4f46e5;
-            --text-primary: #1e293b;
-            --text-secondary: rgba(30, 41, 59, 0.6);
-            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.9);
+            --glass-hover: rgba(255, 255, 255, 0.85);
+            --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --accent-solid: #6366f1;
+            --text-primary: #0f172a;
+            --text-secondary: rgba(15, 23, 42, 0.55);
+            --shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.08);
         }
 
         [data-theme="light-sunset"] {
-            --bg-gradient: linear-gradient(135deg, #fff1eb 0%, #ace0f9 100%);
-            --glass-bg: rgba(255, 255, 255, 0.6);
-            --glass-border: rgba(255, 255, 255, 0.8);
-            --glass-hover: rgba(255, 255, 255, 0.85);
-            --accent-gradient: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
-            --accent-solid: #ff758c;
-            --text-primary: #2d132c;
-            --text-secondary: rgba(45, 19, 44, 0.6);
-            --shadow: 0 8px 32px 0 rgba(255, 117, 140, 0.15);
+            --bg-gradient: linear-gradient(135deg, #fff1eb 0%, #fbcfe8 50%, #bae6fd 100%);
+            --glass-bg: rgba(255, 255, 255, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.85);
+            --glass-hover: rgba(255, 255, 255, 0.8);
+            --accent-gradient: linear-gradient(135deg, #f43f5e 0%, #fb7185 100%);
+            --accent-solid: #f43f5e;
+            --text-primary: #271025;
+            --text-secondary: rgba(39, 16, 37, 0.6);
+            --shadow: 0 10px 30px 0 rgba(244, 63, 94, 0.1);
         }
 
         [data-theme="aurora"] {
-            --bg-gradient: linear-gradient(135deg, #051937 0%, #004d7a 50%, #008793 100%);
-            --accent-gradient: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
-            --accent-solid: #00f2fe;
+            --bg-gradient: linear-gradient(135deg, #020617 0%, #0369a1 50%, #0f766e 100%);
+            --accent-gradient: linear-gradient(135deg, #22d3ee 0%, #38bdf8 100%);
+            --accent-solid: #22d3ee;
+            --text-primary: #f8fafc;
+            --text-secondary: rgba(248, 250, 252, 0.6);
         }
 
         * {
@@ -96,16 +98,20 @@
         .icon-btn {
             background: none;
             border: none;
-            font-size: 20px;
+            font-size: 18px;
             color: var(--text-primary);
             cursor: pointer;
-            padding: 6px;
-            border-radius: 10px;
-            transition: 0.2s;
+            padding: 8px;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .icon-btn:hover {
             background: var(--glass-hover);
+            transform: scale(1.05);
         }
 
         .logo-container {
@@ -115,17 +121,17 @@
         }
 
         .logo-icon {
-            width: 36px;
-            height: 36px;
+            width: 34px;
+            height: 34px;
             background: var(--accent-gradient);
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 800;
-            font-size: 14px;
+            font-size: 13px;
             color: #fff;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             overflow: hidden;
         }
 
@@ -138,6 +144,7 @@
         .logo-text h1 {
             font-size: 15px;
             font-weight: 700;
+            letter-spacing: -0.3px;
             background: var(--accent-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -149,12 +156,12 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(4px);
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(8px);
             z-index: 90;
             opacity: 0;
             visibility: hidden;
-            transition: 0.3s ease;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .sidebar-overlay.open {
@@ -166,7 +173,7 @@
             position: fixed;
             top: 0;
             left: -300px;
-            width: 300px;
+            width: 280px;
             height: 100%;
             background: var(--glass-bg);
             backdrop-filter: blur(40px);
@@ -177,7 +184,7 @@
             display: flex;
             flex-direction: column;
             padding: 24px 16px;
-            gap: 14px;
+            gap: 12px;
         }
 
         .sidebar-drawer.open {
@@ -188,22 +195,22 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .drawer-section-title {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.2px;
             color: var(--text-secondary);
-            margin-top: 10px;
+            margin-top: 14px;
             margin-bottom: 4px;
         }
 
         .nav-item {
             padding: 12px 14px;
-            border-radius: 12px;
+            border-radius: 14px;
             cursor: pointer;
             font-size: 13px;
             font-weight: 500;
@@ -235,7 +242,7 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
-            padding-bottom: 150px; /* Espaço extra para o rodapé simples */
+            padding-bottom: 140px;
         }
 
         .content-header {
@@ -245,8 +252,9 @@
         }
 
         .content-header h2 {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 700;
+            letter-spacing: -0.5px;
         }
 
         .song-grid {
@@ -260,11 +268,11 @@
             align-items: center;
             justify-content: space-between;
             padding: 10px 14px;
-            border-radius: 12px;
+            border-radius: 14px;
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
             cursor: pointer;
-            transition: 0.2s;
+            transition: all 0.2s ease;
         }
 
         .song-card.active-song {
@@ -286,8 +294,8 @@
         .song-thumb {
             width: 42px;
             height: 42px;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.06);
             object-fit: cover;
             flex-shrink: 0;
             border: 1px solid var(--glass-border);
@@ -314,10 +322,9 @@
         .song-actions {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
-        /* Player Fixo e Rodapé Simples Integrado */
         footer {
             position: fixed;
             bottom: 0;
@@ -352,20 +359,33 @@
         .player-controls {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
         }
 
         .control-btn {
             background: none;
             border: none;
             color: var(--text-primary);
-            font-size: 16px;
             cursor: pointer;
+            padding: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+
+        .control-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        .control-btn:hover {
+            transform: scale(1.1);
         }
 
         .control-btn.active-mode {
             color: var(--accent-solid);
-            text-shadow: 0 0 8px var(--accent-solid);
         }
 
         .play-main-btn {
@@ -375,12 +395,22 @@
             background: var(--accent-gradient);
             border: none;
             color: #fff;
-            font-size: 13px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+
+        .play-main-btn svg {
+            width: 14px;
+            height: 14px;
+            fill: #fff;
+        }
+
+        .play-main-btn:hover {
+            transform: scale(1.05);
         }
 
         .progress-container {
@@ -395,7 +425,7 @@
         input[type="range"] {
             flex: 1;
             -webkit-appearance: none;
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.15);
             height: 4px;
             border-radius: 2px;
             outline: none;
@@ -408,16 +438,17 @@
             border-radius: 50%;
             background: var(--text-primary);
             cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
 
-        /* Rodapé Simples */
         .simple-footer-brand {
             text-align: center;
-            font-size: 10px;
+            font-size: 9px;
             color: var(--text-secondary);
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            border-top: 1px solid var(--glass-border);
             padding-top: 4px;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
         }
 
         .expanded-player {
@@ -427,12 +458,13 @@
             width: 100%;
             height: 100%;
             background: var(--bg-gradient);
-            backdrop-filter: blur(50px);
+            backdrop-filter: blur(60px);
+            -webkit-backdrop-filter: blur(60px);
             z-index: 100;
             transition: top 0.4s cubic-bezier(0.1, 0.9, 0.2, 1);
             display: flex;
             flex-direction: column;
-            padding: 30px 20px;
+            padding: 30px 24px;
             overflow-y: auto;
         }
 
@@ -444,7 +476,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .close-expanded {
@@ -459,32 +491,44 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .close-expanded:hover {
+            background: var(--glass-hover);
         }
 
         .expanded-art-container {
-            width: 240px;
-            height: 240px;
-            margin: 20px auto;
-            border-radius: 20px;
+            width: 260px;
+            height: 260px;
+            margin: 10px auto 24px auto;
+            border-radius: 24px;
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            box-shadow: 0 20px 45px rgba(0,0,0,0.35);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 60px;
+            font-size: 70px;
             overflow: hidden;
+        }
+
+        .expanded-art-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .expanded-info {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .expanded-info h2 {
             font-size: 20px;
             font-weight: 700;
             margin-bottom: 6px;
+            letter-spacing: -0.4px;
         }
 
         .expanded-info p {
@@ -495,7 +539,7 @@
         .expanded-controls-box {
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 20px;
             max-width: 400px;
             margin: 0 auto;
             width: 100%;
@@ -505,54 +549,77 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 24px;
+            gap: 28px;
         }
 
         .big-btn {
             background: none;
             border: none;
             color: var(--text-primary);
-            font-size: 22px;
             cursor: pointer;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+
+        .big-btn svg {
+            width: 22px;
+            height: 22px;
+            fill: currentColor;
+        }
+
+        .big-btn:hover {
+            transform: scale(1.15);
         }
 
         .big-btn.active-mode {
             color: var(--accent-solid);
-            text-shadow: 0 0 10px var(--accent-solid);
         }
 
         .big-play-btn {
-            width: 64px;
-            height: 64px;
+            width: 68px;
+            height: 68px;
             border-radius: 50%;
             background: var(--accent-gradient);
             border: none;
             color: #fff;
-            font-size: 22px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 8px 25px rgba(255,20,147,0.4);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s;
+        }
+
+        .big-play-btn svg {
+            width: 22px;
+            height: 22px;
+            fill: #fff;
+        }
+
+        .big-play-btn:hover {
+            transform: scale(1.06);
         }
 
         .expanded-playlist-section {
             margin-top: 30px;
-            max-width: 500px;
+            max-width: 480px;
             margin-left: auto;
             margin-right: auto;
             width: 100%;
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
-            border-radius: 16px;
+            border-radius: 18px;
             padding: 16px;
-            max-height: 220px;
+            max-height: 200px;
             overflow-y: auto;
         }
 
         .empty-state {
             text-align: center;
-            padding: 40px 20px;
+            padding: 30px 20px;
             color: var(--text-secondary);
         }
 
@@ -565,7 +632,9 @@
 
     <header class="glass-panel" style="border-left:none; border-right:none; border-top:none;">
         <div class="header-left">
-            <button class="icon-btn" onclick="toggleSidebar()">☰</button>
+            <button class="icon-btn" onclick="toggleSidebar()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
             <div class="logo-container">
                 <div class="logo-icon" id="app-logo-container">EX</div>
                 <div class="logo-text">
@@ -580,15 +649,16 @@
 
     <div class="sidebar-drawer" id="sidebar-drawer">
         <div class="drawer-header">
-            <h3 style="font-size: 16px; font-weight: 700;">Menu EXNA</h3>
-            <button class="close-expanded" onclick="toggleSidebar()">✕</button>
+            <h3 style="font-size: 15px; font-weight: 700; letter-spacing: -0.3px;">Menu EXNA</h3>
+            <button class="close-expanded" onclick="toggleSidebar()" style="width: 30px; height: 30px; font-size: 14px;">✕</button>
         </div>
 
         <div class="drawer-section-title">Ações</div>
         <div class="nav-item" onclick="document.getElementById('file-input').click(); toggleSidebar()">
             <span>➕</span> Adicionar Músicas
         </div>
-        <input type="file" id="file-input" multiple accept="audio/*">
+        <!-- Alterado para aceitar qualquer formato de áudio e arquivos genéricos no iOS/Files -->
+        <input type="file" id="file-input" multiple accept="audio/*, .mp3, .wav, .flac, .aac, .m4a, .ogg, .opus, .alac, .wma">
 
         <div class="drawer-section-title">Biblioteca</div>
         <div class="nav-item active" id="tab-all" onclick="switchTab('all'); toggleSidebar()">
@@ -609,13 +679,12 @@
             <div class="song-grid" id="song-list">
                 <div class="empty-state">
                     <h3>Biblioteca vazia</h3>
-                    <p style="font-size: 12px; margin-top: 6px;">Abra o menu hambúrguer (☰) acima e adicione suas músicas.</p>
+                    <p style="font-size: 12px; margin-top: 6px;">Abra o menu (☰) acima e adicione as suas músicas locais.</p>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Rodapé Simples Integrado ao Player Fixo -->
     <footer>
         <div class="player-main-row" onclick="openExpandedPlayer()">
             <div class="player-left">
@@ -627,10 +696,18 @@
             </div>
 
             <div class="player-controls">
-                <button class="control-btn" id="shuffle-mini-btn" onclick="event.stopPropagation(); toggleShuffle()" title="Aleatório">🔀</button>
-                <button class="control-btn" onclick="event.stopPropagation(); prevSong()">⏮</button>
-                <button class="play-main-btn" id="mini-play-btn" onclick="event.stopPropagation(); togglePlay()">▶</button>
-                <button class="control-btn" onclick="event.stopPropagation(); nextSong()">⏭</button>
+                <button class="control-btn" id="shuffle-mini-btn" onclick="event.stopPropagation(); toggleShuffle()" title="Aleatório">
+                    <svg viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41M14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5m.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>
+                </button>
+                <button class="control-btn" onclick="event.stopPropagation(); prevSong()" title="Anterior">
+                    <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+                </button>
+                <button class="play-main-btn" id="mini-play-btn" onclick="event.stopPropagation(); togglePlay()" title="Play/Pause">
+                    <svg id="mini-play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                </button>
+                <button class="control-btn" onclick="event.stopPropagation(); nextSong()" title="Seguinte">
+                    <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+                </button>
             </div>
         </div>
 
@@ -640,7 +717,6 @@
             <span id="duration">0:00</span>
         </div>
 
-        <!-- Rodapé Simples ExNA -->
         <div class="simple-footer-brand">
             EXNA MUSIC • 2026
         </div>
@@ -648,8 +724,10 @@
 
     <div class="expanded-player" id="expanded-player">
         <div class="expanded-header">
-            <button class="close-expanded" onclick="closeExpandedPlayer()">⌄</button>
-            <h3 style="font-size: 14px; font-weight: 600;">EXNA PLAYER</h3>
+            <button class="close-expanded" onclick="closeExpandedPlayer()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            <h3 style="font-size: 13px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-secondary);">EXNA PLAYER</h3>
             <div style="width: 36px;"></div>
         </div>
 
@@ -661,22 +739,30 @@
         </div>
 
         <div class="expanded-controls-box">
-            <div class="progress-container" style="font-size: 12px;">
+            <div class="progress-container" style="font-size: 11px;">
                 <span id="exp-current-time">0:00</span>
                 <input type="range" id="exp-progress-bar" value="0" max="100" oninput="seekAudio(this.value)">
                 <span id="exp-duration">0:00</span>
             </div>
 
             <div class="big-buttons">
-                <button class="big-btn" id="shuffle-exp-btn" onclick="toggleShuffle()" title="Aleatório">🔀</button>
-                <button class="big-btn" onclick="prevSong()">⏮</button>
-                <button class="big-play-btn" id="expanded-play-btn" onclick="togglePlay()">▶</button>
-                <button class="big-btn" onclick="nextSong()">⏭</button>
+                <button class="big-btn" id="shuffle-exp-btn" onclick="toggleShuffle()" title="Aleatório">
+                    <svg viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41M14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5m.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>
+                </button>
+                <button class="big-btn" onclick="prevSong()" title="Anterior">
+                    <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+                </button>
+                <button class="big-play-btn" id="expanded-play-btn" onclick="togglePlay()" title="Play/Pause">
+                    <svg id="exp-play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                </button>
+                <button class="big-btn" onclick="nextSong()" title="Seguinte">
+                    <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+                </button>
             </div>
         </div>
 
         <div class="expanded-playlist-section">
-            <div style="font-size: 12px; font-weight: 600; margin-bottom: 10px; color: var(--text-secondary);">Fila de Reprodução Atual</div>
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; color: var(--text-secondary);">Fila de Reprodução Atual</div>
             <div class="song-grid" id="expanded-song-list"></div>
         </div>
     </div>
@@ -844,7 +930,7 @@
                 document.getElementById('mini-artist').innerText = 'EXNA Player Offline';
                 document.getElementById('expanded-title').innerText = 'Nenhuma música';
                 document.getElementById('expanded-artist').innerText = 'EXNA Engine';
-                updatePlayButtons('▶');
+                updatePlayButtons(false);
             }
         }
 
@@ -866,7 +952,7 @@
             document.getElementById('expanded-artist').innerText = song.artist;
 
             audioElement.play().then(() => {
-                updatePlayButtons('⏸');
+                updatePlayButtons(true);
                 renderLibrary();
             }).catch(err => console.log("Erro ao reproduzir:", err));
         }
@@ -883,16 +969,27 @@
             }
             if (audioElement.paused) {
                 audioElement.play();
-                updatePlayButtons('⏸');
+                updatePlayButtons(true);
             } else {
                 audioElement.pause();
-                updatePlayButtons('▶');
+                updatePlayButtons(false);
             }
         }
 
-        function updatePlayButtons(state) {
-            document.getElementById('mini-play-btn').innerText = state;
-            document.getElementById('expanded-play-btn').innerText = state;
+        function updatePlayButtons(isPlaying) {
+            const playPath = "M8 5v14l11-7z";
+            const pausePath = "M6 19h4V5H6v14zm8-14v14h4V5h-4z";
+            
+            const miniIcon = document.getElementById('mini-play-icon');
+            const expIcon = document.getElementById('exp-play-icon');
+            
+            if (isPlaying) {
+                miniIcon.setAttribute('d', pausePath);
+                expIcon.setAttribute('d', pausePath);
+            } else {
+                miniIcon.setAttribute('d', playPath);
+                expIcon.setAttribute('d', playPath);
+            }
         }
 
         function toggleShuffle() {

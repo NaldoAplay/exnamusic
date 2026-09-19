@@ -73,6 +73,14 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        /* ===== ANIMAÇÃO DO GRADIENTE ===== */
+        @keyframes gradientFlow {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* ===== FUNDO IMERSIVO TOTAL COM MOVIMENTO ===== */
         html {
             width: 100%;
             height: 100%;
@@ -80,12 +88,13 @@
             padding: 0;
             background-color: var(--theme-base-color);
             background-image: var(--bg-gradient);
+            background-size: 300% 300%;
             background-repeat: no-repeat;
-            background-size: cover;
             background-position: center;
             background-attachment: fixed;
             overscroll-behavior: none;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.6s ease;
+            animation: gradientFlow 25s ease-in-out infinite;
         }
 
         body {
@@ -102,7 +111,7 @@
             overscroll-behavior: none;
             color: var(--text-primary);
             background: transparent;
-            transition: background 0.3s ease, background-color 0.3s ease;
+            transition: color 0.4s ease;
         }
 
         .glass-panel {
@@ -113,6 +122,7 @@
             box-shadow: var(--shadow);
         }
 
+        /* Header com gradiente animado em sintonia com o fundo */
         header {
             width: 100%;
             display: flex;
@@ -120,13 +130,15 @@
             align-items: center;
             padding: calc(env(safe-area-inset-top, 25px) + 8px) 20px 14px 20px;
             z-index: 20;
-            background: var(--bg-gradient);
-            background-size: cover;
-            background-position: center;
+            background-image: var(--bg-gradient);
+            background-size: 300% 300%;
+            background-position: 0% 50%;
             backdrop-filter: var(--blur-strength);
             -webkit-backdrop-filter: var(--blur-strength);
             flex-shrink: 0;
             border-bottom: 1px solid var(--glass-border);
+            animation: gradientFlow 25s ease-in-out infinite;
+            transition: background-color 0.6s ease;
         }
 
         .header-left {
@@ -314,6 +326,8 @@
             border: 1px solid var(--glass-border);
             cursor: pointer;
             transition: all 0.2s ease;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
         }
 
         .song-card.active-song {
@@ -372,6 +386,7 @@
             gap: 10px;
         }
 
+        /* Footer com gradiente animado */
         footer {
             position: fixed;
             bottom: 0;
@@ -382,13 +397,15 @@
             flex-direction: column;
             gap: 8px;
             border-top: 1px solid var(--glass-border);
-            background: var(--bg-gradient);
-            background-size: cover;
-            background-position: center;
+            background-image: var(--bg-gradient);
+            background-size: 300% 300%;
+            background-position: 50% 50%;
             backdrop-filter: var(--blur-strength);
             -webkit-backdrop-filter: var(--blur-strength);
             z-index: 30;
             box-shadow: 0 -10px 30px rgba(0,0,0,0.2);
+            animation: gradientFlow 25s ease-in-out infinite;
+            transition: background-color 0.6s ease;
         }
 
         .player-main-row {
@@ -491,7 +508,7 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
 
-        /* ===== EXPANDED PLAYER ===== */
+        /* ===== EXPANDED PLAYER COM FUNDO ANIMADO ===== */
         .expanded-player {
             position: fixed;
             top: 100%;
@@ -499,18 +516,19 @@
             width: 100vw;
             height: 100vh;
             height: 100dvh;
-            background: var(--bg-gradient);
-            background-size: cover;
-            background-position: center;
+            background-image: var(--bg-gradient);
+            background-size: 300% 300%;
+            background-position: 0% 50%;
             backdrop-filter: blur(60px);
             -webkit-backdrop-filter: blur(60px);
             z-index: 100;
             transition: top 0.4s cubic-bezier(0.1, 0.9, 0.2, 1);
             display: flex;
             flex-direction: column;
-            gap: 10px; /* Reduzido para dar mais espaço */
+            gap: 10px;
             padding: calc(env(safe-area-inset-top, 30px) + 10px) 20px 0 20px;
             overflow-y: hidden;
+            animation: gradientFlow 25s ease-in-out infinite;
         }
 
         .expanded-player.open {
@@ -539,6 +557,8 @@
             align-items: center;
             justify-content: center;
             transition: background 0.2s, transform 0.2s;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
         }
 
         .expanded-action-btn:hover {
@@ -548,7 +568,7 @@
 
         .expanded-art-container {
             width: 100%;
-            max-width: 230px; /* Reduzido para dar espaço à lista */
+            max-width: 230px;
             height: 230px;
             margin: 0 auto;
             border-radius: 24px;
@@ -560,6 +580,8 @@
             justify-content: center;
             overflow: hidden;
             flex-shrink: 0;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
         }
 
         .expanded-art-container img {
@@ -592,7 +614,7 @@
         .expanded-controls-box {
             display: flex;
             flex-direction: column;
-            gap: 12px; /* Reduzido */
+            gap: 12px;
             max-width: 400px;
             margin: 0 auto;
             width: 100%;
@@ -658,7 +680,6 @@
             transform: scale(1.06);
         }
 
-        /* ===== FILA DE REPRODUÇÃO (CONTAINER FINO, LISTA ABERTA) ===== */
         .expanded-playlist-section {
             flex: 1;
             min-height: 0;
@@ -689,7 +710,6 @@
             flex-direction: column;
             gap: 10px;
             padding-bottom: calc(env(safe-area-inset-bottom, 15px) + 20px);
-            /* Removido o background e borda do container para deixar a lista totalmente aberta */
         }
 
         .empty-state {
@@ -700,6 +720,13 @@
 
         #file-input {
             display: none;
+        }
+
+        /* Respeita preferência de movimento reduzido */
+        @media (prefers-reduced-motion: reduce) {
+            html, header, footer, .expanded-player {
+                animation: none;
+            }
         }
     </style>
 </head>

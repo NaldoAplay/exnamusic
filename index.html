@@ -2,10 +2,10 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <!-- view-port ajustado para cobrir a tela inteira, inclusive a barra de status -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>EXNA MUSIC</title>
     <link rel="manifest" href="manifest.json">
+    <!-- Força a cor preta/escura na barra de status do telemóvel -->
     <meta name="theme-color" content="#090a0f">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -66,9 +66,16 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        /* Força o fundo escuro absoluto no HTML e Body para eliminar qualquer margem branca do navegador */
+        html {
+            background-color: #090a0f;
+            height: 100%;
+        }
+
         body {
             background: var(--bg-gradient);
             background-attachment: fixed;
+            background-color: #090a0f;
             color: var(--text-primary);
             height: 100vh;
             height: 100dvh;
@@ -85,12 +92,11 @@
             box-shadow: var(--shadow);
         }
 
-        /* Header com padding adaptado para entrar debaixo da barra de status do iPhone */
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: calc(env(safe-area-inset-top, 15px) + 6px) 20px 14px 20px;
+            padding: calc(env(safe-area-inset-top, 20px) + 8px) 20px 14px 20px;
             border-bottom: 1px solid var(--glass-border);
             z-index: 20;
         }
@@ -189,7 +195,7 @@
             transition: left 0.35s cubic-bezier(0.1, 0.9, 0.2, 1);
             display: flex;
             flex-direction: column;
-            padding: calc(env(safe-area-inset-top, 20px) + 10px) 16px 24px 16px;
+            padding: calc(env(safe-area-inset-top, 25px) + 10px) 16px 24px 16px;
             gap: 12px;
         }
 
@@ -342,7 +348,7 @@
             bottom: 0;
             left: 0;
             right: 0;
-            padding: 10px 20px calc(env(safe-area-inset-bottom, 15px) + 8px) 20px;
+            padding: 10px 20px calc(env(safe-area-inset-bottom, 20px) + 8px) 20px;
             display: flex;
             flex-direction: column;
             gap: 6px;
@@ -463,7 +469,6 @@
             text-transform: uppercase;
         }
 
-        /* Player Expandido com Padding de segurança para o Notch e barra inferior do iPhone */
         .expanded-player {
             position: fixed;
             top: 100%;
@@ -478,7 +483,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: calc(env(safe-area-inset-top, 20px) + 10px) 20px calc(env(safe-area-inset-bottom, 20px) + 15px) 20px;
+            padding: calc(env(safe-area-inset-top, 25px) + 10px) 20px calc(env(safe-area-inset-bottom, 25px) + 15px) 20px;
             overflow-y: auto;
         }
 

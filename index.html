@@ -73,7 +73,6 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* ===== FUNDO IMERSIVO TOTAL ===== */
         html {
             width: 100%;
             height: 100%;
@@ -373,7 +372,6 @@
             gap: 10px;
         }
 
-        /* Mini Player fixado na base, sem o texto extra */
         footer {
             position: fixed;
             bottom: 0;
@@ -493,7 +491,7 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
 
-        /* Expanded Player — Layout ajustado para preencher a tela sem sobras */
+        /* Expanded Player — padding-bottom ZERADO para a lista encostar na borda */
         .expanded-player {
             position: fixed;
             top: 100%;
@@ -511,8 +509,8 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
-            padding: calc(env(safe-area-inset-top, 30px) + 14px) 24px calc(env(safe-area-inset-bottom, 15px) + 10px) 24px;
-            overflow-y: hidden; /* Deixa o scroll interno para a lista */
+            padding: calc(env(safe-area-inset-top, 30px) + 14px) 24px 0 24px;
+            overflow-y: hidden;
         }
 
         .expanded-player.open {
@@ -660,7 +658,7 @@
             transform: scale(1.06);
         }
 
-        /* Fila de reprodução flexível — ocupa o espaço restante e permite scroll interno */
+        /* Fila de reprodução — estica até a borda inferior, sem borda/canto embaixo */
         .expanded-playlist-section {
             flex: 1;
             min-height: 120px;
@@ -669,8 +667,10 @@
             width: 100%;
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
-            border-radius: 18px;
+            border-bottom: none;
+            border-radius: 18px 18px 0 0;
             padding: 14px;
+            padding-bottom: calc(env(safe-area-inset-bottom, 15px) + 14px);
             overflow-y: auto;
             display: flex;
             flex-direction: column;

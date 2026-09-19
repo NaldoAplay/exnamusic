@@ -28,7 +28,7 @@
         [data-theme="light-pearl"] {
             --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
             --theme-base-color: #e2e8f0;
-            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-bg: rgba(255, 255, 255, 0.75);
             --glass-border: rgba(255, 255, 255, 0.9);
             --glass-hover: rgba(255, 255, 255, 0.85);
             --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
@@ -41,7 +41,7 @@
         [data-theme="light-sunset"] {
             --bg-gradient: linear-gradient(135deg, #fff1eb 0%, #fbcfe8 50%, #bae6fd 100%);
             --theme-base-color: #fbcfe8;
-            --glass-bg: rgba(255, 255, 255, 0.65);
+            --glass-bg: rgba(255, 255, 255, 0.7);
             --glass-border: rgba(255, 255, 255, 0.85);
             --glass-hover: rgba(255, 255, 255, 0.8);
             --accent-gradient: linear-gradient(135deg, #f43f5e 0%, #fb7185 100%);
@@ -53,13 +53,13 @@
 
         [data-theme="aurora"] {
             --bg-gradient: linear-gradient(135deg, #020617 0%, #0369a1 50%, #0f766e 100%);
-            --theme-base-color: #0369a1;
             --accent-gradient: linear-gradient(135deg, #22d3ee 0%, #38bdf8 100%);
             --accent-solid: #22d3ee;
             --text-primary: #f8fafc;
             --text-secondary: rgba(248, 250, 252, 0.65);
         }
 
+        /* Zera margens globais e elimina qualquer borda ou espaço fantasma */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -69,17 +69,21 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Garante tela cheia imersiva e cor de fundo sincronizada com o tema */
         html, body {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
             background-color: var(--theme-base-color);
             background: var(--bg-gradient);
             background-attachment: fixed;
+            background-size: cover;
             color: var(--text-primary);
-            height: 100%;
-            height: 100dvh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
             transition: background 0.3s ease, background-color 0.3s ease;
         }
 
@@ -87,16 +91,16 @@
             background: var(--glass-bg);
             backdrop-filter: var(--blur-strength);
             -webkit-backdrop-filter: var(--blur-strength);
-            border: 1px solid var(--glass-border);
+            border-bottom: 1px solid var(--glass-border);
             box-shadow: var(--shadow);
         }
 
         header {
+            width: 100%;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: calc(env(safe-area-inset-top, 20px) + 10px) 20px 14px 20px;
-            border-bottom: 1px solid var(--glass-border);
+            padding: calc(env(safe-area-inset-top, 25px) + 8px) 20px 14px 20px;
             z-index: 20;
             background: var(--glass-bg);
             backdrop-filter: var(--blur-strength);
@@ -168,9 +172,9 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.35);
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(10px);
             z-index: 90;
             opacity: 0;
@@ -186,9 +190,9 @@
         .sidebar-drawer {
             position: fixed;
             top: 0;
-            left: -300px;
+            left: -320px;
             width: 280px;
-            height: 100%;
+            height: 100vh;
             background: var(--glass-bg);
             backdrop-filter: blur(40px);
             -webkit-backdrop-filter: blur(40px);
@@ -197,7 +201,7 @@
             transition: left 0.35s cubic-bezier(0.1, 0.9, 0.2, 1);
             display: flex;
             flex-direction: column;
-            padding: calc(env(safe-area-inset-top, 25px) + 14px) 16px 24px 16px;
+            padding: calc(env(safe-area-inset-top, 30px) + 14px) 16px 24px 16px;
             gap: 12px;
         }
 
@@ -245,18 +249,20 @@
         .main-layout {
             display: flex;
             flex: 1;
+            width: 100%;
             overflow: hidden;
             position: relative;
         }
 
         .content-area {
             flex: 1;
+            width: 100%;
             padding: 20px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
             gap: 16px;
-            padding-bottom: 140px;
+            padding-bottom: 160px;
         }
 
         .content-header {
@@ -345,13 +351,13 @@
             gap: 10px;
         }
 
-        /* Mini Player perfeitamente encaixado de ponta a ponta na base imersiva com o rodapé sutil integrado */
+        /* Mini Player fixado a 100% de largura na base imersiva com o rodapé integrado perfeitamente */
         footer {
             position: fixed;
             bottom: 0;
             left: 0;
-            right: 0;
-            padding: 12px 20px calc(env(safe-area-inset-bottom, 20px) + 10px) 20px;
+            width: 100%;
+            padding: 12px 20px calc(env(safe-area-inset-bottom, 22px) + 8px) 20px;
             display: flex;
             flex-direction: column;
             gap: 8px;
@@ -360,7 +366,7 @@
             backdrop-filter: var(--blur-strength);
             -webkit-backdrop-filter: var(--blur-strength);
             z-index: 30;
-            box-shadow: 0 -10px 30px rgba(0,0,0,0.15);
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.2);
         }
 
         .player-main-row {
@@ -463,14 +469,15 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
 
-        /* Rodapé pequeno de direitos integrado perfeitamente dentro da barra inferior, sem colar no play */
+        /* Rodapé de direitos grande o suficiente e perfeitamente legível na base */
         .footer-brand-meta {
             text-align: center;
-            font-size: 9px;
+            font-size: 10px;
+            font-weight: 600;
             color: var(--text-secondary);
-            letter-spacing: 1px;
+            letter-spacing: 1.2px;
             text-transform: uppercase;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
             padding-top: 6px;
             margin-top: 2px;
         }
@@ -479,8 +486,9 @@
             position: fixed;
             top: 100%;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
             background: var(--bg-gradient);
             backdrop-filter: blur(60px);
             -webkit-backdrop-filter: blur(60px);
@@ -489,7 +497,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: calc(env(safe-area-inset-top, 25px) + 14px) 24px calc(env(safe-area-inset-bottom, 25px) + 20px) 24px;
+            padding: calc(env(safe-area-inset-top, 30px) + 14px) 24px calc(env(safe-area-inset-bottom, 30px) + 20px) 24px;
             overflow-y: auto;
         }
 

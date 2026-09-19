@@ -1,8 +1,10 @@
-const CACHE_NAME = 'exna-music-v3';
+const CACHE_NAME = 'exna-music-v4';
 const assetsToCache = [
+    './',
     'index.html',
     'manifest.json',
-    'icon.png'
+    'icon.png',
+    'jsmediatags.min.js'   // <-- ADICIONADO: biblioteca local
 ];
 
 self.addEventListener('install', (e) => {
@@ -31,6 +33,7 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
     e.respondWith(
         caches.match(e.request).then((cachedResponse) => {
+            // Se tem no cache, usa o cache (offline). Se não, busca da rede.
             return cachedResponse || fetch(e.request);
         })
     );

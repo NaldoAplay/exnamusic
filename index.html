@@ -14,13 +14,13 @@
         :root {
             --bg-gradient: linear-gradient(135deg, #090a0f 0%, #151828 50%, #090a0f 100%);
             --theme-base-color: #090a0f;
-            --glass-bg: rgba(255, 255, 255, 0.06);
-            --glass-border: rgba(255, 255, 255, 0.12);
-            --glass-hover: rgba(255, 255, 255, 0.12);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-hover: rgba(255, 255, 255, 0.1);
             --accent-gradient: linear-gradient(135deg, #9333ea 0%, #ec4899 100%);
             --accent-solid: #ec4899;
             --text-primary: #ffffff;
-            --text-secondary: rgba(255, 255, 255, 0.6);
+            --text-secondary: rgba(255, 255, 255, 0.55);
             --blur-strength: blur(40px);
             --shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.4);
         }
@@ -28,7 +28,7 @@
         [data-theme="light-pearl"] {
             --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
             --theme-base-color: #e2e8f0;
-            --glass-bg: rgba(255, 255, 255, 0.75);
+            --glass-bg: rgba(255, 255, 255, 0.7);
             --glass-border: rgba(255, 255, 255, 0.9);
             --glass-hover: rgba(255, 255, 255, 0.85);
             --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
@@ -41,7 +41,7 @@
         [data-theme="light-sunset"] {
             --bg-gradient: linear-gradient(135deg, #fff1eb 0%, #fbcfe8 50%, #bae6fd 100%);
             --theme-base-color: #fbcfe8;
-            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-bg: rgba(255, 255, 255, 0.65);
             --glass-border: rgba(255, 255, 255, 0.85);
             --glass-hover: rgba(255, 255, 255, 0.8);
             --accent-gradient: linear-gradient(135deg, #f43f5e 0%, #fb7185 100%);
@@ -69,6 +69,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        /* Garante tela cheia imersiva e cor de fundo sincronizada com o tema */
         html, body {
             background-color: var(--theme-base-color);
             background: var(--bg-gradient);
@@ -255,7 +256,7 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
-            padding-bottom: 110px;
+            padding-bottom: 140px;
         }
 
         .content-header {
@@ -344,13 +345,13 @@
             gap: 10px;
         }
 
-        /* Mini Player Perfeitamente Encaixado e Imersivo na Base */
+        /* Mini Player perfeitamente encaixado de ponta a ponta na base imersiva com o rodapé sutil integrado */
         footer {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            padding: 12px 20px calc(env(safe-area-inset-bottom, 20px) + 12px) 20px;
+            padding: 12px 20px calc(env(safe-area-inset-bottom, 20px) + 10px) 20px;
             display: flex;
             flex-direction: column;
             gap: 8px;
@@ -460,6 +461,18 @@
             background: var(--text-primary);
             cursor: pointer;
             box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        /* Rodapé pequeno de direitos integrado perfeitamente dentro da barra inferior, sem colar no play */
+        .footer-brand-meta {
+            text-align: center;
+            font-size: 9px;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding-top: 6px;
+            margin-top: 2px;
         }
 
         .expanded-player {
@@ -733,6 +746,10 @@
             <span id="current-time">0:00</span>
             <input type="range" id="progress-bar" value="0" max="100" onclick="event.stopPropagation()" oninput="seekAudio(this.value)">
             <span id="duration">0:00</span>
+        </div>
+
+        <div class="footer-brand-meta">
+            EXNA MUSIC • 2026
         </div>
     </footer>
 

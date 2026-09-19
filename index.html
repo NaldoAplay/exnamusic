@@ -557,7 +557,6 @@
             width: 100%;
         }
 
-        /* GRID PERFEITA: PLAY NO CENTRO RIGOROSO */
         .big-buttons {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -701,10 +700,10 @@
     <footer>
         <div class="player-main-row" onclick="openExpandedPlayer()">
             <div class="player-left">
-                <div class="song-thumb" id="mini-thumb">🎵</div>
+                <div class="song-thumb" id="mini-thumb"><img src="icon.png" alt="EXNA" style="width:100%; height:100%; object-fit:cover;"></div>
                 <div style="overflow: hidden;">
                     <div id="mini-title" style="font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Nenhuma música tocando</div>
-                    <div id="mini-artist" style="font-size: 10px; color: var(--text-secondary);">EXNA Player Offline</div>
+                    <div id="mini-artist" style="font-size: 10px; color: var(--text-secondary);">EXNA MUSIC</div>
                 </div>
             </div>
 
@@ -735,7 +734,6 @@
         </div>
     </footer>
 
-    <!-- Player Expandido Perfeito com Play no Centro e Gestos de Deslizar -->
     <div class="expanded-player" id="expanded-player">
         <div class="expanded-header">
             <button class="expanded-action-btn" onclick="closeExpandedPlayer()" title="Fechar">
@@ -747,11 +745,13 @@
             </button>
         </div>
 
-        <div class="expanded-art-container" id="expanded-thumb">🎵</div>
+        <div class="expanded-art-container" id="expanded-thumb">
+            <img src="icon.png" alt="EXNA" style="width:100%; height:100%; object-fit:cover;">
+        </div>
 
         <div class="expanded-info">
             <h2 id="expanded-title">Nenhuma música</h2>
-            <p id="expanded-artist">EXNA Engine</p>
+            <p id="expanded-artist">EXNA MUSIC</p>
         </div>
 
         <div class="expanded-controls-box">
@@ -762,23 +762,18 @@
             </div>
 
             <div class="big-buttons">
-                <!-- Coluna 1: Aleatório -->
                 <button class="big-btn" id="shuffle-exp-btn" onclick="toggleShuffle()" title="Aleatório">
                     <svg viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41M14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5m.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>
                 </button>
-                <!-- Coluna 2: Anterior -->
                 <button class="big-btn" onclick="prevSong()" title="Anterior">
                     <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
                 </button>
-                <!-- Coluna 3: Play/Pause Centralizado -->
                 <button class="big-play-btn" id="expanded-play-btn" onclick="togglePlay()" title="Play/Pause">
                     <svg class="play-icon-svg" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                 </button>
-                <!-- Coluna 4: Seguinte -->
                 <button class="big-btn" onclick="nextSong()" title="Seguinte">
                     <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
                 </button>
-                <!-- Coluna 5: Repetir -->
                 <button class="big-btn" id="repeat-exp-btn" onclick="toggleRepeat()" title="Repetir">
                     <svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
                 </button>
@@ -794,6 +789,10 @@
     <audio id="audio-element"></audio>
 
     <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => {});
+        }
+
         let library = [];
         let currentTab = 'all';
         let currentIndex = 0;
@@ -806,7 +805,6 @@
         const sidebarOverlay = document.getElementById('sidebar-overlay');
         const expandedPlayer = document.getElementById('expanded-player');
 
-        // Configuração do IndexedDB para Salvar as Músicas Localmente
         let db;
         const dbRequest = indexedDB.open("ExnaMusicDB", 1);
 
@@ -849,10 +847,10 @@
                         const song = {
                             dbId: item.id,
                             name: item.name,
-                            artist: item.artist,
+                            artist: item.artist || "EXNA MUSIC",
                             file: item.file,
                             url: URL.createObjectURL(item.file),
-                            thumbUrl: item.thumbUrl,
+                            thumbUrl: item.thumbUrl || null,
                             favorite: item.favorite || false
                         };
                         library.push(song);
@@ -932,7 +930,7 @@
             Array.from(files).forEach(file => {
                 const song = {
                     name: file.name.replace(/\.[^/.]+$/, ""),
-                    artist: "Artista Desconhecido",
+                    artist: "EXNA MUSIC",
                     file: file,
                     url: URL.createObjectURL(file),
                     thumbUrl: null,
@@ -943,7 +941,7 @@
                     onSuccess: function(tag) {
                         const tags = tag.tags;
                         if (tags.title) song.name = tags.title;
-                        if (tags.artist) song.artist = tags.artist;
+                        if (tags.artist && tags.artist.trim() !== "") song.artist = tags.artist;
                         
                         if (tags.picture) {
                             const data = tags.picture.data;
@@ -1000,7 +998,7 @@
             activeList.forEach((song) => {
                 const globalIndex = library.indexOf(song);
                 const isCurrent = library[currentIndex] === song;
-                const thumbHTML = song.thumbUrl ? `<img src="${song.thumbUrl}" alt="Capa">` : '🎵';
+                const thumbHTML = song.thumbUrl ? `<img src="${song.thumbUrl}" alt="Capa">` : `<img src="icon.png" alt="EXNA" style="width:100%; height:100%; object-fit:cover;">`;
                 htmlContent += `
                     <div class="song-card ${isCurrent ? 'active-song' : ''}" onclick="loadSongByGlobalIndex(${globalIndex})">
                         <div class="song-meta">
@@ -1037,11 +1035,11 @@
                 audioElement.pause();
                 audioElement.src = '';
                 document.getElementById('mini-title').innerText = 'Nenhuma música tocando';
-                document.getElementById('mini-artist').innerText = 'EXNA Player Offline';
+                document.getElementById('mini-artist').innerText = 'EXNA MUSIC';
                 document.getElementById('expanded-title').innerText = 'Nenhuma música';
-                document.getElementById('expanded-artist').innerText = 'EXNA Engine';
-                document.getElementById('expanded-thumb').innerHTML = '🎵';
-                document.getElementById('mini-thumb').innerHTML = '🎵';
+                document.getElementById('expanded-artist').innerText = 'EXNA MUSIC';
+                document.getElementById('expanded-thumb').innerHTML = `<img src="icon.png" alt="EXNA" style="width:100%; height:100%; object-fit:cover;">`;
+                document.getElementById('mini-thumb').innerHTML = `<img src="icon.png" alt="EXNA" style="width:100%; height:100%; object-fit:cover;">`;
                 updatePlayButtons(false);
             }
         }
@@ -1059,6 +1057,22 @@
             audioElement.src = song.url;
             updateCurrentSongUI();
 
+            const activeArtwork = song.thumbUrl ? song.thumbUrl : 'icon.png';
+
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: song.name,
+                    artist: song.artist || "EXNA MUSIC",
+                    album: 'EXNA MUSIC',
+                    artwork: [{ src: activeArtwork, sizes: '512x512', type: 'image/png' }]
+                });
+
+                navigator.mediaSession.setActionHandler('play', () => togglePlay());
+                navigator.mediaSession.setActionHandler('pause', () => togglePlay());
+                navigator.mediaSession.setActionHandler('previoustrack', () => prevSong());
+                navigator.mediaSession.setActionHandler('nexttrack', () => nextSong());
+            }
+
             audioElement.play().then(() => {
                 updatePlayButtons(true);
                 renderLibrary();
@@ -1070,11 +1084,11 @@
             const song = library[currentIndex];
 
             document.getElementById('mini-title').innerText = song.name;
-            document.getElementById('mini-artist').innerText = song.artist;
+            document.getElementById('mini-artist').innerText = song.artist || "EXNA MUSIC";
             document.getElementById('expanded-title').innerText = song.name;
-            document.getElementById('expanded-artist').innerText = song.artist;
+            document.getElementById('expanded-artist').innerText = song.artist || "EXNA MUSIC";
 
-            const thumbHTML = song.thumbUrl ? `<img src="${song.thumbUrl}" alt="Capa">` : '🎵';
+            const thumbHTML = song.thumbUrl ? `<img src="${song.thumbUrl}" alt="Capa">` : `<img src="icon.png" alt="EXNA" style="width:100%; height:100%; object-fit:cover;">`;
             document.getElementById('mini-thumb').innerHTML = thumbHTML;
             document.getElementById('expanded-thumb').innerHTML = thumbHTML;
 
@@ -1101,7 +1115,6 @@
             }
         }
 
-        // Correção robusta para alternar o ícone de Play / Pause instantaneamente
         function updatePlayButtons(isPlaying) {
             const playPath = "M8 5v14l11-7z";
             const pausePath = "M6 19h4V5H6v14zm8-14v14h4V5h-4z";
@@ -1191,6 +1204,9 @@
                 document.getElementById('exp-duration').innerText = formattedDuration;
             }
         });
+
+        audioElement.addEventListener('play', () => updatePlayButtons(true));
+        audioElement.addEventListener('pause', () => updatePlayButtons(false));
 
         function seekAudio(val) {
             if (audioElement.duration) {

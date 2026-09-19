@@ -53,6 +53,7 @@
 
         [data-theme="aurora"] {
             --bg-gradient: linear-gradient(135deg, #020617 0%, #0369a1 50%, #0f766e 100%);
+            --theme-base-color: #0369a1;
             --accent-gradient: linear-gradient(135deg, #22d3ee 0%, #38bdf8 100%);
             --accent-solid: #22d3ee;
             --text-primary: #f8fafc;
@@ -73,7 +74,7 @@
             background: var(--bg-gradient);
             background-attachment: fixed;
             color: var(--text-primary);
-            height: 100vh;
+            height: 100%;
             height: 100dvh;
             display: flex;
             flex-direction: column;
@@ -254,7 +255,7 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
-            padding-bottom: 150px;
+            padding-bottom: 140px;
         }
 
         .content-header {
@@ -343,10 +344,10 @@
             gap: 8px;
         }
 
-        /* Mini Player posicionado acima do rodapé de base */
+        /* Mini Player posicionado perfeitamente acima do rodapé absoluto */
         footer {
             position: fixed;
-            bottom: 24px;
+            bottom: 22px;
             left: 12px;
             right: 12px;
             padding: 10px 16px;
@@ -359,7 +360,7 @@
             backdrop-filter: var(--blur-strength);
             -webkit-backdrop-filter: var(--blur-strength);
             z-index: 30;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
 
         .player-main-row {
@@ -462,7 +463,7 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
 
-        /* Rodapé fixado na base absoluta da tela */
+        /* Rodapé posicionado limpo na base absoluta */
         .absolute-footer-brand {
             position: fixed;
             bottom: 4px;
@@ -751,7 +752,6 @@
         </div>
     </footer>
 
-    <!-- Rodapé separado, na base absoluta da tela -->
     <div class="absolute-footer-brand">
         EXNA MUSIC • 2026
     </div>
@@ -1280,7 +1280,7 @@
             document.getElementById('tab-favorites').classList.remove('active');
             
             if(tab === 'all') {
-                document.getElementById('tab-all').classList.add('app-active'); // Corrigido seletor
+                document.getElementById('tab-all').classList.add('active');
                 document.getElementById('section-title').innerText = 'Todas as Músicas';
             } else {
                 document.getElementById('tab-favorites').classList.add('active');

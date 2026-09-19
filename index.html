@@ -57,6 +57,7 @@
 
         [data-theme="aurora"] {
             --bg-gradient: linear-gradient(135deg, #020617 0%, #0369a1 50%, #0f766e 100%);
+            --theme-base-color: #0369a1; /* Adicionado para corrigir o fundo */
             --accent-gradient: linear-gradient(135deg, #22d3ee 0%, #38bdf8 100%);
             --accent-solid: #22d3ee;
             --text-primary: #f8fafc;
@@ -72,7 +73,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* ===== FUNDO IMERSIVO TOTAL — SEM BORDAS BRANCAS ===== */
+        /* ===== FUNDO IMERSIVO TOTAL ===== */
         html {
             width: 100%;
             height: 100%;
@@ -93,7 +94,7 @@
             inset: 0;
             width: 100%;
             height: 100vh;
-            height: 100lvh; /* cobre também a área atrás das barras do navegador */
+            height: 100lvh;
             margin: 0;
             padding: 0;
             display: flex;
@@ -105,7 +106,7 @@
             transition: background 0.3s ease, background-color 0.3s ease;
         }
 
-        /* Camada extra que preenche qualquer fresta do navegador (topo/base) */
+        /* Camada extra que preenche qualquer fresta do navegador (topo) */
         body::before {
             content: "";
             position: fixed;
@@ -123,6 +124,20 @@
             transition: background 0.3s ease, background-color 0.3s ease;
         }
 
+        /* Camada que pinta a safe area inferior (resolve a barra branca) */
+        body::after {
+            content: "";
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: env(safe-area-inset-bottom, 20px);
+            background-color: var(--theme-base-color);
+            z-index: 999;
+            pointer-events: none;
+            transition: background-color 0.3s ease;
+        }
+
         .glass-panel {
             background: var(--glass-bg);
             backdrop-filter: var(--blur-strength);
@@ -138,10 +153,13 @@
             align-items: center;
             padding: calc(env(safe-area-inset-top, 25px) + 8px) 20px 14px 20px;
             z-index: 20;
-            background: var(--glass-bg);
+            background: var(--bg-gradient); /* Fundo com o tema */
+            background-size: cover;
+            background-position: center;
             backdrop-filter: var(--blur-strength);
             -webkit-backdrop-filter: var(--blur-strength);
             flex-shrink: 0;
+            border-bottom: 1px solid var(--glass-border);
         }
 
         .header-left {
@@ -387,7 +405,7 @@
             gap: 10px;
         }
 
-        /* Mini Player fixado na base com o rodapé imersivo perfeitamente integrado */
+        /* Mini Player fixado na base */
         footer {
             position: fixed;
             bottom: 0;
@@ -398,7 +416,9 @@
             flex-direction: column;
             gap: 8px;
             border-top: 1px solid var(--glass-border);
-            background: var(--glass-bg);
+            background: var(--bg-gradient); /* Fundo com o tema */
+            background-size: cover;
+            background-position: center;
             backdrop-filter: var(--blur-strength);
             -webkit-backdrop-filter: var(--blur-strength);
             z-index: 30;
@@ -956,7 +976,6 @@
         let currentThemeIndex = 0;
 
         function applyTheme(themeId) {
-            // Aplica no <html> E no <body> para o fundo cobrir toda a tela
             document.documentElement.setAttribute('data-theme', themeId);
             document.body.setAttribute('data-theme', themeId);
 
@@ -965,7 +984,6 @@
                 currentThemeIndex = themes.indexOf(found);
                 document.getElementById('theme-toggle-btn').innerText = found.icon;
                 document.getElementById('theme-color-meta').setAttribute('content', found.color);
-                // Cor da barra do navegador (overscroll / status bar)
                 document.documentElement.style.backgroundColor = found.color;
             }
             localStorage.setItem('exna_theme', themeId);
@@ -1226,7 +1244,7 @@
         function toggleRepeat() {
             isRepeat = !isRepeat;
             const btnExp = document.getElementById('repeat-exp-btn');
-            const btnMini = document.getElementById('repeat-mini-btn'); // pode não existir
+            const btnMini = document.getElementById('repeat-mini-btn');
             if (btnExp) btnExp.classList.toggle('active-mode', isRepeat);
             if (btnMini) btnMini.classList.toggle('active-mode', isRepeat);
         }

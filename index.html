@@ -491,7 +491,7 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
 
-        /* Expanded Player — padding-bottom ZERADO para a lista encostar na borda */
+        /* ===== EXPANDED PLAYER ===== */
         .expanded-player {
             position: fixed;
             top: 100%;
@@ -508,8 +508,8 @@
             transition: top 0.4s cubic-bezier(0.1, 0.9, 0.2, 1);
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            padding: calc(env(safe-area-inset-top, 30px) + 14px) 24px 0 24px;
+            gap: 10px; /* Reduzido para dar mais espaço */
+            padding: calc(env(safe-area-inset-top, 30px) + 10px) 20px 0 20px;
             overflow-y: hidden;
         }
 
@@ -548,8 +548,8 @@
 
         .expanded-art-container {
             width: 100%;
-            max-width: 260px;
-            height: 260px;
+            max-width: 230px; /* Reduzido para dar espaço à lista */
+            height: 230px;
             margin: 0 auto;
             border-radius: 24px;
             background: var(--glass-bg);
@@ -592,7 +592,7 @@
         .expanded-controls-box {
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 12px; /* Reduzido */
             max-width: 400px;
             margin: 0 auto;
             width: 100%;
@@ -658,29 +658,38 @@
             transform: scale(1.06);
         }
 
-        /* Fila de reprodução — estica até a borda inferior, sem borda/canto embaixo */
+        /* ===== FILA DE REPRODUÇÃO (CONTAINER FINO, LISTA ABERTA) ===== */
         .expanded-playlist-section {
             flex: 1;
-            min-height: 120px;
+            min-height: 0;
             max-width: 400px;
             margin: 0 auto;
             width: 100%;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-bottom: none;
-            border-radius: 18px 18px 0 0;
-            padding: 14px;
-            padding-bottom: calc(env(safe-area-inset-bottom, 15px) + 14px);
-            overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 6px;
+            overflow: hidden;
+        }
+
+        .playlist-header {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+            padding-left: 4px;
+            padding-bottom: 2px;
         }
 
         .expanded-playlist-section .song-grid {
             flex: 1;
             overflow-y: auto;
+            display: flex;
+            flex-direction: column;
             gap: 10px;
+            padding-bottom: calc(env(safe-area-inset-bottom, 15px) + 20px);
+            /* Removido o background e borda do container para deixar a lista totalmente aberta */
         }
 
         .empty-state {
@@ -830,7 +839,7 @@
         </div>
 
         <div class="expanded-playlist-section">
-            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-secondary); flex-shrink: 0;">Fila de Reprodução Atual</div>
+            <div class="playlist-header">Fila de Reprodução Atual</div>
             <div class="song-grid" id="expanded-song-list"></div>
         </div>
     </div>

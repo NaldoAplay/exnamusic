@@ -297,7 +297,6 @@
             height: 42px;
             border-radius: 10px;
             background: rgba(255,255,255,0.06);
-            object-fit: cover;
             flex-shrink: 0;
             border: 1px solid var(--glass-border);
             display: flex;
@@ -459,6 +458,7 @@
             text-transform: uppercase;
         }
 
+        /* Player Expandido Compacto e Imersivo (Sem barras desnecessárias) */
         .expanded-player {
             position: fixed;
             top: 100%;
@@ -472,7 +472,8 @@
             transition: top 0.4s cubic-bezier(0.1, 0.9, 0.2, 1);
             display: flex;
             flex-direction: column;
-            padding: 30px 24px;
+            justify-content: space-between;
+            padding: 24px 20px 30px 20px;
             overflow-y: auto;
         }
 
@@ -484,19 +485,17 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
             width: 100%;
             max-width: 400px;
-            margin-left: auto;
-            margin-right: auto;
+            margin: 0 auto;
         }
 
         .expanded-action-btn {
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
             color: var(--text-primary);
-            width: 38px;
-            height: 38px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
@@ -510,48 +509,53 @@
             transform: scale(1.05);
         }
 
+        /* CORREÇÃO DA IMAGEM AMASSADA: Proporção fluida e contida sem distorção */
         .expanded-art-container {
-            width: 260px;
-            height: 260px;
-            margin: 10px auto 24px auto;
-            border-radius: 24px;
+            width: 100%;
+            max-width: 240px;
+            height: 240px;
+            margin: 10px auto;
+            border-radius: 20px;
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
-            box-shadow: 0 20px 45px rgba(0,0,0,0.35);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 70px;
             overflow: hidden;
+            flex-shrink: 0;
         }
 
         .expanded-art-container img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain; /* Mantém proporção exata sem amassar */
         }
 
         .expanded-info {
             text-align: center;
-            margin-bottom: 24px;
+            margin: 10px 0;
         }
 
         .expanded-info h2 {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             letter-spacing: -0.4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .expanded-info p {
-            font-size: 13px;
+            font-size: 12px;
             color: var(--text-secondary);
         }
 
         .expanded-controls-box {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 16px;
             max-width: 400px;
             margin: 0 auto;
             width: 100%;
@@ -592,8 +596,8 @@
         }
 
         .big-play-btn {
-            width: 68px;
-            height: 68px;
+            width: 64px;
+            height: 64px;
             border-radius: 50%;
             background: var(--accent-gradient);
             border: none;
@@ -602,7 +606,7 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
             transition: transform 0.2s;
         }
 
@@ -617,22 +621,22 @@
         }
 
         .expanded-playlist-section {
-            margin-top: 30px;
-            max-width: 480px;
+            margin-top: 10px;
+            max-width: 400px;
             margin-left: auto;
             margin-right: auto;
             width: 100%;
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
-            border-radius: 18px;
-            padding: 16px;
-            max-height: 200px;
+            border-radius: 16px;
+            padding: 12px;
+            max-height: 160px;
             overflow-y: auto;
         }
 
         .empty-state {
             text-align: center;
-            padding: 30px 20px;
+            padding: 20px;
             color: var(--text-secondary);
         }
 
@@ -734,6 +738,7 @@
         </div>
     </footer>
 
+    <!-- Player Expandido Ajustado (Sem barras brancas e proporções perfeitas) -->
     <div class="expanded-player" id="expanded-player">
         <div class="expanded-header">
             <button class="expanded-action-btn" onclick="closeExpandedPlayer()" title="Fechar">
@@ -746,7 +751,7 @@
         </div>
 
         <div class="expanded-art-container" id="expanded-thumb">
-            <img src="icon.png" alt="EXNA" style="width:100%; height:100%; object-fit:cover;">
+            <img src="icon.png" alt="EXNA">
         </div>
 
         <div class="expanded-info">
@@ -781,7 +786,7 @@
         </div>
 
         <div class="expanded-playlist-section">
-            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; color: var(--text-secondary);">Fila de Reprodução Atual</div>
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; color: var(--text-secondary);">Fila de Reprodução Atual</div>
             <div class="song-grid" id="expanded-song-list"></div>
         </div>
     </div>

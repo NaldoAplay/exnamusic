@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>EXNA MUSIC</title>
     <link rel="manifest" href="manifest.json">
-    <!-- Meta tag dinâmica para a cor da barra de status do telemóvel -->
     <meta id="theme-color-meta" name="theme-color" content="#090a0f">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -70,7 +69,6 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Faz com que o fundo do documento assuma exatamente a cor base do tema atual */
         html {
             background-color: var(--theme-base-color);
             height: 100%;
@@ -260,7 +258,7 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
-            padding-bottom: 140px;
+            padding-bottom: 120px;
         }
 
         .content-header {
@@ -349,15 +347,16 @@
             gap: 8px;
         }
 
+        /* Mini Player Limpo (Sem rodapé de texto abaixo) */
         footer {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            padding: 10px 20px calc(env(safe-area-inset-bottom, 20px) + 8px) 20px;
+            padding: 12px 20px calc(env(safe-area-inset-bottom, 15px) + 12px) 20px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
             border-top: 1px solid var(--glass-border);
             background: var(--glass-bg);
             backdrop-filter: var(--blur-strength);
@@ -463,16 +462,6 @@
             background: var(--text-primary);
             cursor: pointer;
             box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-        }
-
-        .simple-footer-brand {
-            text-align: center;
-            font-size: 9px;
-            color: var(--text-secondary);
-            border-top: 1px solid var(--glass-border);
-            padding-top: 4px;
-            letter-spacing: 0.8px;
-            text-transform: uppercase;
         }
 
         .expanded-player {
@@ -747,10 +736,6 @@
             <input type="range" id="progress-bar" value="0" max="100" onclick="event.stopPropagation()" oninput="seekAudio(this.value)">
             <span id="duration">0:00</span>
         </div>
-
-        <div class="simple-footer-brand">
-            EXNA MUSIC • 2026
-        </div>
     </footer>
 
     <div class="expanded-player" id="expanded-player">
@@ -905,7 +890,6 @@
             if(found) {
                 currentThemeIndex = themes.indexOf(found);
                 document.getElementById('theme-toggle-btn').innerText = found.icon;
-                // Altera dinamicamente a meta tag da barra de status do telemóvel para acompanhar a cor exata do tema
                 document.getElementById('theme-color-meta').setAttribute('content', found.color);
             }
             localStorage.setItem('exna_theme', themeId);

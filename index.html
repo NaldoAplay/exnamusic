@@ -40,7 +40,6 @@
 
         [data-theme="light-sunset"] {
             --bg-gradient: linear-gradient(135deg, #fff1eb 0%, #fbcfe8 50%, #bae6fd 100%);
-            --theme-base-color: #fbcfe8;
             --glass-bg: rgba(255, 255, 255, 0.65);
             --glass-border: rgba(255, 255, 255, 0.85);
             --glass-hover: rgba(255, 255, 255, 0.8);
@@ -53,7 +52,6 @@
 
         [data-theme="aurora"] {
             --bg-gradient: linear-gradient(135deg, #020617 0%, #0369a1 50%, #0f766e 100%);
-            --theme-base-color: #0369a1;
             --accent-gradient: linear-gradient(135deg, #22d3ee 0%, #38bdf8 100%);
             --accent-solid: #22d3ee;
             --text-primary: #f8fafc;
@@ -258,7 +256,7 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
-            padding-bottom: 120px;
+            padding-bottom: 140px;
         }
 
         .content-header {
@@ -347,16 +345,16 @@
             gap: 8px;
         }
 
-        /* Mini Player Limpo (Sem rodapé de texto abaixo) */
+        /* Barra Inferior (Footer) com o Rodapé de Direitos Organizado */
         footer {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            padding: 12px 20px calc(env(safe-area-inset-bottom, 15px) + 12px) 20px;
+            padding: 12px 20px calc(env(safe-area-inset-bottom, 15px) + 8px) 20px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
             border-top: 1px solid var(--glass-border);
             background: var(--glass-bg);
             backdrop-filter: var(--blur-strength);
@@ -462,6 +460,18 @@
             background: var(--text-primary);
             cursor: pointer;
             box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        /* Rodapé posicionado de forma limpa dentro da barra de baixo */
+        .footer-brand-meta {
+            text-align: center;
+            font-size: 8px;
+            color: var(--text-secondary);
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 4px;
+            margin-top: 2px;
         }
 
         .expanded-player {
@@ -705,6 +715,7 @@
         </main>
     </div>
 
+    <!-- Barra Inferior com o Rodapé Limpo Incluído -->
     <footer>
         <div class="player-main-row" onclick="openExpandedPlayer()">
             <div class="player-left">
@@ -735,6 +746,10 @@
             <span id="current-time">0:00</span>
             <input type="range" id="progress-bar" value="0" max="100" onclick="event.stopPropagation()" oninput="seekAudio(this.value)">
             <span id="duration">0:00</span>
+        </div>
+
+        <div class="footer-brand-meta">
+            EXNA MUSIC • 2026
         </div>
     </footer>
 
@@ -860,6 +875,17 @@
                         library.push(song);
                     });
                     renderLibrary();
+
+                    const lastIndex = parseInt(localStorage.getItem('exna_last_index')) || 0;
+                    const savedTime = parseFloat(localStorage.getItem('exna_last_time')) || 0;
+                    
+                    if (library[lastIndex]) {
+                        currentIndex = lastIndex;
+                        const song = library[currentIndex];
+                        audioElement.src = song.url;
+                        updateCurrentSongUI();
+                        audioElement.currentTime = savedTime;
+                    }
                 }
             };
         }
@@ -1039,6 +1065,8 @@
             if(library.length === 0) {
                 audioElement.pause();
                 audioElement.src = '';
+                localStorage.removeItem('exna_last_index');
+                localStorage.removeItem('exna_last_time');
                 document.getElementById('mini-title').innerText = 'Nenhuma música tocando';
                 document.getElementById('mini-artist').innerText = 'EXNA MUSIC';
                 document.getElementById('expanded-title').innerText = 'Nenhuma música';
@@ -1061,6 +1089,8 @@
 
             audioElement.src = song.url;
             updateCurrentSongUI();
+
+            localStorage.setItem('exna_last_index', currentIndex);
 
             const activeArtwork = song.thumbUrl ? song.thumbUrl : 'icon.png';
 
@@ -1196,6 +1226,8 @@
 
         audioElement.addEventListener('timeupdate', () => {
             if (audioElement.duration) {
+                localStorage.setItem('exna_last_time', audioElement.currentTime);
+
                 const progress = (audioElement.currentTime / audioElement.duration) * 100;
                 document.getElementById('progress-bar').value = progress;
                 document.getElementById('exp-progress-bar').value = progress;

@@ -1,17 +1,15 @@
 {
   "name": "EXNA MUSIC",
-  "short_name": "EXNA MUSIC",
+  "short_name": "EXNA",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#050608",
+  "background_color": "#0d0f18",
   "theme_color": "#8a2be2",
-  "orientation": "portrait",
   "icons": [
     {
-      "src": "logo-quadrada.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "src": "icon.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png"
     }
   ]
 }

@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>EXNA MUSIC</title>
     <link rel="manifest" href="manifest.json">
-    <!-- Força a cor preta/escura na barra de status do telemóvel -->
-    <meta name="theme-color" content="#090a0f">
+    <!-- Meta tag dinâmica para a cor da barra de status do telemóvel -->
+    <meta id="theme-color-meta" name="theme-color" content="#090a0f">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="icon" type="image/png" href="icon.png">
@@ -14,6 +14,7 @@
     <style>
         :root {
             --bg-gradient: linear-gradient(135deg, #090a0f 0%, #151828 50%, #090a0f 100%);
+            --theme-base-color: #090a0f;
             --glass-bg: rgba(255, 255, 255, 0.04);
             --glass-border: rgba(255, 255, 255, 0.08);
             --glass-hover: rgba(255, 255, 255, 0.08);
@@ -27,6 +28,7 @@
 
         [data-theme="light-pearl"] {
             --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
+            --theme-base-color: #e2e8f0;
             --glass-bg: rgba(255, 255, 255, 0.7);
             --glass-border: rgba(255, 255, 255, 0.9);
             --glass-hover: rgba(255, 255, 255, 0.85);
@@ -39,6 +41,7 @@
 
         [data-theme="light-sunset"] {
             --bg-gradient: linear-gradient(135deg, #fff1eb 0%, #fbcfe8 50%, #bae6fd 100%);
+            --theme-base-color: #fbcfe8;
             --glass-bg: rgba(255, 255, 255, 0.65);
             --glass-border: rgba(255, 255, 255, 0.85);
             --glass-hover: rgba(255, 255, 255, 0.8);
@@ -51,6 +54,7 @@
 
         [data-theme="aurora"] {
             --bg-gradient: linear-gradient(135deg, #020617 0%, #0369a1 50%, #0f766e 100%);
+            --theme-base-color: #0369a1;
             --accent-gradient: linear-gradient(135deg, #22d3ee 0%, #38bdf8 100%);
             --accent-solid: #22d3ee;
             --text-primary: #f8fafc;
@@ -66,22 +70,24 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Força o fundo escuro absoluto no HTML e Body para eliminar qualquer margem branca do navegador */
+        /* Faz com que o fundo do documento assuma exatamente a cor base do tema atual */
         html {
-            background-color: #090a0f;
+            background-color: var(--theme-base-color);
             height: 100%;
+            transition: background-color 0.3s ease;
         }
 
         body {
             background: var(--bg-gradient);
             background-attachment: fixed;
-            background-color: #090a0f;
+            background-color: var(--theme-base-color);
             color: var(--text-primary);
             height: 100vh;
             height: 100dvh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            transition: background 0.3s ease;
         }
 
         .glass-panel {
@@ -886,10 +892,10 @@
         });
 
         const themes = [
-            { id: 'default', icon: '🌙', name: 'Liquid Dark' },
-            { id: 'light-pearl', icon: '☀️', name: 'Pearl White' },
-            { id: 'light-sunset', icon: '🌅', name: 'Sunset Rose' },
-            { id: 'aurora', icon: '🌊', name: 'Ocean Aurora' }
+            { id: 'default', icon: '🌙', name: 'Liquid Dark', color: '#090a0f' },
+            { id: 'light-pearl', icon: '☀️', name: 'Pearl White', color: '#e2e8f0' },
+            { id: 'light-sunset', icon: '🌅', name: 'Sunset Rose', color: '#fbcfe8' },
+            { id: 'aurora', icon: '🌊', name: 'Ocean Aurora', color: '#0369a1' }
         ];
         let currentThemeIndex = 0;
 
@@ -899,6 +905,8 @@
             if(found) {
                 currentThemeIndex = themes.indexOf(found);
                 document.getElementById('theme-toggle-btn').innerText = found.icon;
+                // Altera dinamicamente a meta tag da barra de status do telemóvel para acompanhar a cor exata do tema
+                document.getElementById('theme-color-meta').setAttribute('content', found.color);
             }
             localStorage.setItem('exna_theme', themeId);
         }

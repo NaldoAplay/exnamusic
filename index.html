@@ -80,21 +80,32 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* ===== FUNDO IMERSIVO TOTAL COM MOVIMENTO ===== */
+        /* ===== FUNDO IMERSIVO COM MOVIMENTO CONTROLADO ===== */
+        /* Pausado: movimento MUITO sutil e lento (quase imperceptível) */
+        /* Tocando: movimento visível, mais rápido e vibrante */
         html {
+            --gradient-size: 220% 220%;
+            --gradient-duration: 40s;
             width: 100%;
             height: 100%;
             margin: 0;
             padding: 0;
             background-color: var(--theme-base-color);
             background-image: var(--bg-gradient);
-            background-size: 300% 300%;
+            background-size: var(--gradient-size);
             background-repeat: no-repeat;
-            background-position: center;
+            background-position: 0% 50%;
             background-attachment: fixed;
             overscroll-behavior: none;
             transition: background-color 0.6s ease;
-            animation: gradientFlow 25s ease-in-out infinite;
+            animation: gradientFlow var(--gradient-duration) ease-in-out infinite;
+            will-change: background-position;
+        }
+
+        /* Quando a música está tocando: o gradiente ganha vida */
+        html.playing {
+            --gradient-size: 400% 400%;
+            --gradient-duration: 8s;
         }
 
         body {
@@ -122,7 +133,7 @@
             box-shadow: var(--shadow);
         }
 
-        /* Header com gradiente animado em sintonia com o fundo */
+        /* Header herda a mesma animação e velocidade do html */
         header {
             width: 100%;
             display: flex;
@@ -131,14 +142,15 @@
             padding: calc(env(safe-area-inset-top, 25px) + 8px) 20px 14px 20px;
             z-index: 20;
             background-image: var(--bg-gradient);
-            background-size: 300% 300%;
+            background-size: var(--gradient-size);
             background-position: 0% 50%;
             backdrop-filter: var(--blur-strength);
             -webkit-backdrop-filter: var(--blur-strength);
             flex-shrink: 0;
             border-bottom: 1px solid var(--glass-border);
-            animation: gradientFlow 25s ease-in-out infinite;
+            animation: gradientFlow var(--gradient-duration) ease-in-out infinite;
             transition: background-color 0.6s ease;
+            will-change: background-position;
         }
 
         .header-left {
@@ -386,7 +398,7 @@
             gap: 10px;
         }
 
-        /* Footer com gradiente animado */
+        /* Footer herda a mesma animação e velocidade */
         footer {
             position: fixed;
             bottom: 0;
@@ -398,14 +410,15 @@
             gap: 8px;
             border-top: 1px solid var(--glass-border);
             background-image: var(--bg-gradient);
-            background-size: 300% 300%;
+            background-size: var(--gradient-size);
             background-position: 50% 50%;
             backdrop-filter: var(--blur-strength);
             -webkit-backdrop-filter: var(--blur-strength);
             z-index: 30;
             box-shadow: 0 -10px 30px rgba(0,0,0,0.2);
-            animation: gradientFlow 25s ease-in-out infinite;
+            animation: gradientFlow var(--gradient-duration) ease-in-out infinite;
             transition: background-color 0.6s ease;
+            will-change: background-position;
         }
 
         .player-main-row {
@@ -508,7 +521,7 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
 
-        /* ===== EXPANDED PLAYER COM FUNDO ANIMADO ===== */
+        /* ===== EXPANDED PLAYER — mesma animação ===== */
         .expanded-player {
             position: fixed;
             top: 100%;
@@ -517,7 +530,7 @@
             height: 100vh;
             height: 100dvh;
             background-image: var(--bg-gradient);
-            background-size: 300% 300%;
+            background-size: var(--gradient-size);
             background-position: 0% 50%;
             backdrop-filter: blur(60px);
             -webkit-backdrop-filter: blur(60px);
@@ -528,7 +541,8 @@
             gap: 10px;
             padding: calc(env(safe-area-inset-top, 30px) + 10px) 20px 0 20px;
             overflow-y: hidden;
-            animation: gradientFlow 25s ease-in-out infinite;
+            animation: gradientFlow var(--gradient-duration) ease-in-out infinite;
+            will-change: background-position;
         }
 
         .expanded-player.open {
@@ -1306,8 +1320,15 @@
             }
         });
 
-        audioElement.addEventListener('play', () => updatePlayButtons(true));
-        audioElement.addEventListener('pause', () => updatePlayButtons(false));
+        // ===== AQUI O GRADIENTE GANHA VIDA =====
+        audioElement.addEventListener('play', () => {
+            document.documentElement.classList.add('playing');
+            updatePlayButtons(true);
+        });
+        audioElement.addEventListener('pause', () => {
+            document.documentElement.classList.remove('playing');
+            updatePlayButtons(false);
+        });
 
         function seekAudio(val) {
             if (audioElement.duration) {

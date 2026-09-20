@@ -147,8 +147,6 @@
             transition: color 0.4s ease;
         }
 
-        /* NOTA: a camada body::after foi REMOVIDA — era ela que criava a borda preta */
-
         header {
             width: 100%;
             display: flex;
@@ -607,22 +605,41 @@
         .big-play-btn svg { width: 24px; height: 24px; fill: #fff; }
         .big-play-btn:hover { transform: scale(1.06); }
 
+        /* ===== FILA DE REPRODUÇÃO COM EFEITO INFINITO ===== */
         .expanded-playlist-section {
             flex: 1; min-height: 0;
             max-width: 400px; margin: 0 auto; width: 100%;
             display: flex; flex-direction: column; gap: 6px; overflow: hidden;
+            position: relative;
         }
 
         .playlist-header {
             font-size: 11px; font-weight: 700; text-transform: uppercase;
             letter-spacing: 0.8px; color: var(--text-secondary);
             flex-shrink: 0; padding-left: 4px; padding-bottom: 2px;
+            position: relative; z-index: 4;
         }
 
         .expanded-playlist-section .song-grid {
             flex: 1; overflow-y: auto;
             display: flex; flex-direction: column; gap: 10px;
-            padding-bottom: calc(env(safe-area-inset-bottom, 15px) + 20px);
+            padding-bottom: 70px;
+        }
+
+        /* Fade "infinito" no final da lista */
+        .expanded-playlist-section::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: calc(env(safe-area-inset-bottom, 0px) + 60px);
+            background: linear-gradient(to bottom,
+                transparent 0%,
+                color-mix(in srgb, var(--theme-base-color, #000) 60%, transparent) 40%,
+                var(--theme-base-color, #000) 100%);
+            pointer-events: none;
+            z-index: 3;
         }
 
         .empty-state { text-align: center; padding: 24px; color: var(--text-secondary); }
@@ -1487,11 +1504,9 @@
         function closeExpandedPlayer() { expandedPlayer.classList.remove('open'); }
 
         /* ============ GESTOS DE DESLIZAR ============ */
-        // 1) Player expandido: swipe de baixo pra cima (abre) e de cima pra baixo (fecha)
         let playerTouchStartY = 0;
         let playerTouchStartX = 0;
 
-        // 2) Sidebar: swipe da borda esquerda pra direita (abre) e da direita pra esquerda (fecha)
         let sidebarTouchStartX = 0;
         let sidebarTouchStartY = 0;
         let sidebarTracking = false;
@@ -1501,13 +1516,11 @@
             const x = t.clientX;
             const y = t.clientY;
 
-            // Detecta swipe do player (perto do fundo OU com ele aberto)
             if (y > window.innerHeight - 180 || expandedPlayer.classList.contains('open')) {
                 playerTouchStartY = y;
                 playerTouchStartX = x;
             }
 
-            // Detecta swipe da sidebar (borda esquerda OU com ela aberta)
             if (x < 32 || sidebar.classList.contains('open')) {
                 sidebarTouchStartX = x;
                 sidebarTouchStartY = y;
@@ -1522,31 +1535,26 @@
             const x = t.clientX;
             const y = t.clientY;
 
-            // === Swipe da SIDEBAR ===
             if (sidebarTracking) {
                 const dx = x - sidebarTouchStartX;
                 const dy = y - sidebarTouchStartY;
-                // Só conta se o movimento horizontal for maior que o vertical
                 if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
                     if (dx > 50 && !sidebar.classList.contains('open')) {
-                        // abre
                         sidebar.classList.add('open');
                         sidebarOverlay.classList.add('open');
                     } else if (dx < -50 && sidebar.classList.contains('open')) {
-                        // fecha
                         sidebar.classList.remove('open');
                         sidebarOverlay.classList.remove('open');
                     }
                 }
                 sidebarTracking = false;
-                return; // não processa swipe do player se foi da sidebar
+                return;
             }
 
-            // === Swipe do PLAYER EXPANDIDO ===
             if (!playerTouchStartY) return;
             const diffY = playerTouchStartY - y;
             const diffX = Math.abs(playerTouchStartX - x);
-            if (diffX > Math.abs(diffY)) return; // se foi mais horizontal que vertical, ignora
+            if (diffX > Math.abs(diffY)) return;
 
             if (diffY > 60 && !expandedPlayer.classList.contains('open') && playerTouchStartY > window.innerHeight - 180) {
                 openExpandedPlayer();

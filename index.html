@@ -101,13 +101,14 @@ header{width:100%;display:flex;justify-content:space-between;align-items:center;
 .content-header h2{font-size:24px;font-weight:700;letter-spacing:-0.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .song-grid{display:flex;flex-direction:column;gap:10px}
 .song-card{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:16px;background:var(--glass-bg);border:1px solid var(--glass-border);cursor:pointer;transition:all 0.2s ease;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);gap:8px}
-.song-card.active-song{border-color:var(--accent-solid);background:var(--glass-hover)}
+.song-card.active-song{border-color:var(--accent-solid);background:var(--glass-hover);box-shadow:0 0 0 1px var(--accent-solid) inset, 0 4px 20px -8px var(--accent-solid)}
 .song-card:active{transform:scale(0.98)}
 .song-meta{display:flex;align-items:center;gap:12px;overflow:hidden;flex:1;min-width:0}
 .song-thumb{width:46px;height:46px;border-radius:12px;background:rgba(255,255,255,0.06);flex-shrink:0;border:1px solid var(--glass-border);display:flex;align-items:center;justify-content:center;font-size:16px;overflow:hidden}
 .song-thumb img{width:100%;height:100%;object-fit:cover}
 .song-details{min-width:0;flex:1}
-.song-details h4{font-size:14px;font-weight:600;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.song-details h4{font-size:14px;font-weight:600;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:6px}
+.song-details h4 .song-title-text{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1}
 .song-details span{font-size:12px;color:var(--text-secondary);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .song-actions{display:flex;align-items:center;gap:2px;flex-shrink:0}
 .song-action-btn{background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;transition:background 0.2s,transform 0.15s,color 0.2s;color:var(--text-secondary);display:flex;align-items:center;justify-content:center;min-width:32px;min-height:32px;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
@@ -116,6 +117,17 @@ header{width:100%;display:flex;justify-content:space-between;align-items:center;
 .song-action-btn:active{transform:scale(0.9)}
 .song-action-btn.is-fav{color:var(--accent-solid)}
 .song-action-btn.is-fav svg{fill:var(--accent-solid);stroke:var(--accent-solid)}
+
+/* ===== INDICADOR DE MÚSICA TOCANDO (EQUALIZER) ===== */
+.playing-indicator{display:inline-flex;align-items:flex-end;justify-content:center;gap:2px;width:14px;height:14px;flex-shrink:0}
+.playing-indicator span{display:block;width:3px;background:var(--accent-solid);border-radius:2px;transform-origin:bottom;animation:eqBar 0.9s ease-in-out infinite}
+.playing-indicator span:nth-child(1){animation-delay:-0.4s;height:40%}
+.playing-indicator span:nth-child(2){animation-delay:-0.2s;height:100%}
+.playing-indicator span:nth-child(3){animation-delay:0s;height:60%}
+@keyframes eqBar{0%,100%{transform:scaleY(0.35)}50%{transform:scaleY(1)}}
+.song-card:not(.active-song) .playing-indicator{display:none}
+.song-card.paused .playing-indicator span{animation-play-state:paused;opacity:0.5}
+
 footer{position:fixed;bottom:0;left:0;width:100%;padding:10px 20px calc(env(safe-area-inset-bottom,12px) + 6px) 20px;display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--glass-border);background-image:var(--bg-gradient);background-size:var(--gradient-size);background-position:50% 50%;backdrop-filter:var(--blur-strength);-webkit-backdrop-filter:var(--blur-strength);z-index:30;box-shadow:0 -10px 30px rgba(0,0,0,0.2);animation:gradientFlow var(--gradient-duration) ease-in-out infinite;will-change:background-position}
 .player-main-row{display:flex;align-items:center;justify-content:space-between;cursor:pointer;gap:8px}
 .player-left{display:flex;align-items:center;gap:12px;overflow:hidden;flex:1;min-width:0}
@@ -191,7 +203,7 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;hei
 .modal-new-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
 .modal-new-btn:hover{transform:scale(1.02)}
 .modal-empty{text-align:center;padding:20px;color:var(--text-secondary);font-size:12px}
-@media (prefers-reduced-motion:reduce){html,header,footer,.expanded-player{animation:none}.expanded-art-container,.expanded-playlist-section,.expanded-main-area,.expanded-playlist-section .song-grid{transition:none}}
+@media (prefers-reduced-motion:reduce){html,header,footer,.expanded-player,.playing-indicator span{animation:none}.expanded-art-container,.expanded-playlist-section,.expanded-main-area,.expanded-playlist-section .song-grid{transition:none}}
 </style>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"SoftwareApplication","name":"EXNA Music","alternateName":"EXNA Player","description":"Player de música offline grátis.","url":"https://naldoaplay.github.io/exnamusic/","image":"https://naldoaplay.github.io/exnamusic/icon.png","applicationCategory":"MultimediaApplication","operatingSystem":"Web, Android, iOS, Windows, macOS, Linux","inLanguage":"pt-BR","offers":{"@type":"Offer","price":"0","priceCurrency":"BRL"},"author":{"@type":"Person","name":"NaldoA","url":"https://naldoa-dm.web.app"}}
@@ -268,7 +280,7 @@ Favoritos
 </div>
 
 <div class="main-layout">
-<main class="content-area">
+<main class="content-area" id="content-area">
 <div class="content-header">
 <h2 id="section-title">Todas as Músicas</h2>
 <span id="song-counter" style="color:var(--text-secondary);font-size:13px;font-weight:500;">0 faixas</span>
@@ -423,6 +435,7 @@ const sidebar = document.getElementById('sidebar-drawer');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
 const expandedPlayer = document.getElementById('expanded-player');
 const expandedArt = document.getElementById('expanded-thumb');
+const contentArea = document.getElementById('content-area');
 
 const ICONS = {
     sun: '<svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.07" y2="4.93"/></svg>',
@@ -456,10 +469,7 @@ dbRequest.onerror = function(e) {
 };
 
 function saveSongToDB(songData, callback) {
-    if (!db) {
-        console.error('[EXNA] DB não pronto');
-        return;
-    }
+    if (!db) return;
     const tx = db.transaction(["songs"], "readwrite");
     const store = tx.objectStore("songs");
     const req = store.add(songData);
@@ -687,7 +697,6 @@ function closePlaylistModal() {
     currentModalSongIndex = null;
 }
 
-/* ============ ADICIONAR/REMOVER DA PLAYLIST (SEM MEXER NA VIEW ATUAL) ============ */
 function toggleSongInPlaylist(playlistId) {
     if (currentModalSongIndex === null) return;
     const song = library[currentModalSongIndex];
@@ -698,23 +707,15 @@ function toggleSongInPlaylist(playlistId) {
     }
     const pl = playlists.find(p => p.id === playlistId);
     if (!pl) return;
-
     if (pl.songIds.includes(song.dbId)) {
         removeSongFromPlaylist(playlistId, song.dbId);
     } else {
         addSongToPlaylist(playlistId, song.dbId);
     }
-
     renderPlaylists();
-    // Atualiza só a modal
     openPlaylistModal(currentModalSongIndex);
-
-    // Se estiver na view dessa playlist, re-renderiza a lista principal
-    if (currentView === 'playlist' && currentPlaylistId === playlistId) {
-        renderLibrary();
-    }
-    // Se NÃO estiver na playlist, NÃO re-renderiza a lista de "Todas as Músicas"
-    // A música permanece exatamente onde estava
+    // Re-renderiza a lista SEMPRE, mas preservando o scroll (o áudio não é afetado)
+    renderLibrary(true);
 }
 
 function extractAlbumColors(imageUrl) {
@@ -807,7 +808,7 @@ function selectView(view, playlistId) {
         title.innerText = pl ? pl.name : 'Playlist';
     }
     renderPlaylists();
-    renderLibrary();
+    renderLibrary(false);
 }
 
 function getActiveList() {
@@ -820,7 +821,6 @@ function getActiveList() {
     return library;
 }
 
-/* ============ CLIQUE SEGURO NO CARD ============ */
 function handleCardClick(e, globalIndex) {
     const actionBtn = e.target.closest('.song-action-btn');
     if (actionBtn) {
@@ -839,18 +839,23 @@ function handleCardClick(e, globalIndex) {
 function buildCard(song) {
     const globalIndex = library.indexOf(song);
     const isCurrent = library[currentIndex] === song;
+    const isPaused = isCurrent && audioElement.paused;
     const thumbHTML = song.thumbUrl
         ? `<img src="${song.thumbUrl}" alt="Capa">`
         : `<img src="icon.png" alt="EXNA" style="width:100%;height:100%;object-fit:cover;">`;
     const favIcon = song.favorite
         ? `<svg viewBox="0 0 24 24" style="fill:currentColor;stroke:currentColor;"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`
         : `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
+    const eqIndicator = `<span class="playing-indicator"><span></span><span></span><span></span></span>`;
     return `
-        <div class="song-card ${isCurrent ? 'active-song' : ''}" onclick="handleCardClick(event, ${globalIndex})">
+        <div class="song-card ${isCurrent ? 'active-song' : ''} ${isPaused ? 'paused' : ''}" onclick="handleCardClick(event, ${globalIndex})">
             <div class="song-meta">
                 <div class="song-thumb">${thumbHTML}</div>
                 <div class="song-details">
-                    <h4>${escapeHtml(song.name)}</h4>
+                    <h4>
+                        ${eqIndicator}
+                        <span class="song-title-text">${escapeHtml(song.name)}</span>
+                    </h4>
                     <span>${escapeHtml(song.artist)}</span>
                 </div>
             </div>
@@ -869,10 +874,14 @@ function buildCard(song) {
     `;
 }
 
-function renderLibrary() {
+function renderLibrary(preserveScroll) {
     const listContainer = document.getElementById('song-list');
     const expListContainer = document.getElementById('expanded-song-list');
     document.getElementById('song-counter').innerText = `${library.length} faixas`;
+
+    // Salva posição do scroll se pedido
+    const savedScroll = preserveScroll ? contentArea.scrollTop : null;
+
     const activeList = getActiveList();
 
     if (activeList.length === 0) {
@@ -893,6 +902,13 @@ function renderLibrary() {
         expList = [...expList.slice(idx), ...expList.slice(0, idx)];
     }
     expListContainer.innerHTML = expList.map(buildCard).join('');
+
+    // Restaura posição do scroll
+    if (savedScroll !== null) {
+        requestAnimationFrame(() => {
+            contentArea.scrollTop = savedScroll;
+        });
+    }
 }
 
 function removeSong(globalIndex) {
@@ -908,7 +924,7 @@ function removeSong(globalIndex) {
     renderPlaylists();
 
     library.splice(globalIndex, 1);
-    renderLibrary();
+    renderLibrary(false);
 
     if (library.length === 0) {
         audioElement.pause();
@@ -961,20 +977,24 @@ function loadSong(index) {
 
     audioElement.play().then(() => {
         updatePlayButtons(true);
-        // Atualiza só o destaque dos cards, sem recriar tudo
+        // Atualiza só o destaque e o equalizador, sem recriar o DOM
         updateCardsHighlight();
     }).catch(err => console.log("Erro ao reproduzir:", err));
 }
 
 function updateCardsHighlight() {
-    // Atualiza a classe active-song em todos os cards visíveis sem recriar o DOM
     document.querySelectorAll('.song-card').forEach(card => {
         const onClick = card.getAttribute('onclick') || '';
         const match = onClick.match(/handleCardClick\(event,\s*(\d+)\)/);
         if (match) {
             const idx = parseInt(match[1], 10);
-            if (idx === currentIndex) card.classList.add('active-song');
-            else card.classList.remove('active-song');
+            if (idx === currentIndex) {
+                card.classList.add('active-song');
+                card.classList.toggle('paused', audioElement.paused);
+            } else {
+                card.classList.remove('active-song');
+                card.classList.remove('paused');
+            }
         }
     });
 }
@@ -1008,9 +1028,11 @@ function togglePlay() {
     if (audioElement.paused) {
         audioElement.play();
         updatePlayButtons(true);
+        updateCardsHighlight();
     } else {
         audioElement.pause();
         updatePlayButtons(false);
+        updateCardsHighlight();
     }
 }
 
@@ -1085,10 +1107,12 @@ audioElement.addEventListener('timeupdate', () => {
 audioElement.addEventListener('play', () => {
     document.documentElement.classList.add('playing');
     updatePlayButtons(true);
+    updateCardsHighlight();
 });
 audioElement.addEventListener('pause', () => {
     document.documentElement.classList.remove('playing');
     updatePlayButtons(false);
+    updateCardsHighlight();
 });
 
 function seekAudio(val) {
@@ -1101,33 +1125,11 @@ function formatTime(seconds) {
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 }
 
-/* ============ FAVORITAR (SEM MEXER NA LISTA) ============ */
 function toggleFavorite(globalIndex) {
     const song = library[globalIndex];
     if (!song) return;
     song.favorite = !song.favorite;
     if (song.dbId) updateFavoriteInDB(song.dbId, song.favorite);
-
-    // Atualiza SÓ os botões dessa música em todas as listas visíveis
-    document.querySelectorAll(`.song-action-btn[data-action="favorite"][data-index="${globalIndex}"]`).forEach(btn => {
-        btn.classList.toggle('is-fav', song.favorite);
-        const svg = btn.querySelector('svg');
-        if (svg) {
-            if (song.favorite) {
-                svg.style.fill = 'currentColor';
-                svg.style.stroke = 'currentColor';
-            } else {
-                svg.style.fill = '';
-                svg.style.stroke = '';
-            }
-        }
-    });
-
-    // Se estiver vendo a lista de Favoritos, re-renderiza (porque a música pode aparecer/sumir daqui)
-    // Mas se estiver em "Todas as Músicas", NÃO re-renderiza — a música continua lá do mesmo jeito
-    if (currentView === 'favorites') {
-        renderLibrary();
-    }
 
     // Atualiza o botão do player expandido se for a música atual
     if (currentIndex === globalIndex) {
@@ -1135,6 +1137,10 @@ function toggleFavorite(globalIndex) {
         if (song.favorite) favBtn.classList.add('is-fav');
         else favBtn.classList.remove('is-fav');
     }
+
+    // Re-renderiza a lista SEMPRE, preservando o scroll.
+    // O áudio NÃO é afetado (renderLibrary só mexe em DOM de lista).
+    renderLibrary(true);
 }
 
 function toggleFavoriteCurrent() {
@@ -1284,7 +1290,7 @@ function pushSong(song) {
         console.log('[EXNA] dbId setado:', newId, 'para', song.name);
     });
 
-    renderLibrary();
+    renderLibrary(false);
     if (library.length === 1 && !audioElement.src) loadSong(0);
 }
 </script>

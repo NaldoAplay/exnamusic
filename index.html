@@ -1683,7 +1683,7 @@
             `;
         }
 
-        function renderLibrary() {
+                function renderLibrary() {
             const listContainer = document.getElementById('song-list');
             const expListContainer = document.getElementById('expanded-song-list');
             document.getElementById('song-counter').innerText = `${library.length} faixas`;
@@ -1702,11 +1702,13 @@
             // Lista principal — ordem original
             listContainer.innerHTML = activeList.map(buildCard).join('');
 
-            // Fila do player expandido — música atual NO TOPO
+            // Fila do player expandido — música atual no topo MANTENDO a sequência (rotação)
             const currentSong = library[currentIndex];
             let expList = [...activeList];
             if (currentSong && expList.includes(currentSong)) {
-                expList = [currentSong, ...expList.filter(s => s !== currentSong)];
+                const idx = expList.indexOf(currentSong);
+                // Rotaciona: começa na música atual e segue em ordem
+                expList = [...expList.slice(idx), ...expList.slice(0, idx)];
             }
             expListContainer.innerHTML = expList.map(buildCard).join('');
         }

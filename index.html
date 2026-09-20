@@ -64,19 +64,19 @@
             --text-secondary: rgba(248, 250, 252, 0.65);
         }
 
-        /* NOVO TEMA: ALBUM COLORS — cores dinâmicas extraídas da capa */
+        /* TEMA ALBUM — cores dinâmicas com tons suaves */
         [data-theme="album"] {
             --bg-gradient: linear-gradient(135deg,
                 var(--album-c1, #090a0f) 0%,
-                var(--album-c2, #9333ea) 45%,
-                var(--album-c3, #ec4899) 75%,
+                var(--album-c2, #3a1f5c) 45%,
+                var(--album-c3, #6b3050) 75%,
                 var(--album-c1, #090a0f) 100%);
             --theme-base-color: var(--album-base, #090a0f);
             --glass-bg: rgba(255, 255, 255, 0.07);
             --glass-border: rgba(255, 255, 255, 0.15);
             --glass-hover: rgba(255, 255, 255, 0.14);
-            --accent-gradient: linear-gradient(135deg, var(--album-c2, #9333ea) 0%, var(--album-c3, #ec4899) 100%);
-            --accent-solid: var(--album-c3, #ec4899);
+            --accent-gradient: linear-gradient(135deg, var(--album-c3, #6b3050) 0%, var(--album-c2, #3a1f5c) 100%);
+            --accent-solid: var(--album-c3, #6b3050);
             --text-primary: #ffffff;
             --text-secondary: rgba(255, 255, 255, 0.7);
             --shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.5);
@@ -122,7 +122,6 @@
             --gradient-duration: 8s;
         }
 
-        /* O tema album acelera um pouco mesmo pausado (mais visível) */
         html[data-theme="album"] {
             --gradient-size: 320% 320%;
             --gradient-duration: 18s;
@@ -149,6 +148,20 @@
             transition: color 0.4s ease;
         }
 
+        /* Camada que pinta a safe area inferior (home indicator do iPhone) */
+        body::after {
+            content: "";
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: env(safe-area-inset-bottom, 12px);
+            background-color: var(--theme-base-color);
+            z-index: 999;
+            pointer-events: none;
+            transition: background-color 0.6s ease;
+        }
+
         header {
             width: 100%;
             display: flex;
@@ -167,11 +180,7 @@
             will-change: background-position;
         }
 
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+        .header-left { display: flex; align-items: center; gap: 12px; }
 
         .icon-btn {
             background: none;
@@ -186,11 +195,7 @@
             align-items: center;
             justify-content: center;
         }
-
-        .icon-btn:hover {
-            background: var(--glass-hover);
-            transform: scale(1.05);
-        }
+        .icon-btn:hover { background: var(--glass-hover); transform: scale(1.05); }
 
         .logo-container { display: flex; align-items: center; gap: 10px; }
 
@@ -209,6 +214,7 @@
             overflow: hidden;
         }
         .logo-icon img { width: 100%; height: 100%; object-fit: cover; }
+
         .logo-text h1 {
             font-size: 16px;
             font-weight: 700;
@@ -231,7 +237,6 @@
         }
         .sidebar-overlay.open { opacity: 1; visibility: visible; }
 
-        /* Sidebar com scroll e estrutura flex para empurrar o footer para baixo */
         .sidebar-drawer {
             position: fixed;
             top: 0;
@@ -295,7 +300,6 @@
         }
         .nav-item .nav-emoji { font-size: 16px; flex-shrink: 0; }
 
-        /* Playlist items */
         .playlist-item {
             display: flex;
             align-items: center;
@@ -339,7 +343,6 @@
         }
         .playlist-item .pl-del:hover { color: #f43f5e; background: var(--glass-hover); }
 
-        /* Links sociais */
         .social-links {
             display: flex;
             gap: 10px;
@@ -369,7 +372,6 @@
         .social-btn.instagram:hover { color: #e1306c; border-color: #e1306c; }
         .social-btn svg { width: 22px; height: 22px; fill: currentColor; }
 
-        /* Rodapé do menu */
         .drawer-footer {
             margin-top: auto;
             padding-top: 14px;
@@ -639,7 +641,6 @@
 
         #file-input { display: none; }
 
-        /* MODAL */
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -879,7 +880,6 @@
         </div>
     </div>
 
-    <!-- MODAL DE PLAYLIST -->
     <div class="modal-overlay" id="playlist-modal" onclick="if(event.target===this)closePlaylistModal()">
         <div class="modal-card">
             <div class="modal-header">
@@ -899,7 +899,7 @@
         }
 
         let library = [];
-        let currentView = 'all';           // 'all' | 'favorites' | 'playlist'
+        let currentView = 'all';
         let currentPlaylistId = null;
         let currentIndex = 0;
         let isShuffle = false;
@@ -988,7 +988,7 @@
             { id: 'light-pearl', icon: '☀️', name: 'Pearl White', color: '#e2e8f0' },
             { id: 'light-sunset', icon: '🌅', name: 'Sunset Rose', color: '#fbcfe8' },
             { id: 'aurora', icon: '🌊', name: 'Ocean Aurora', color: '#0369a1' },
-            { id: 'album', icon: '🎨', name: 'Album Colors', color: '#9333ea' }
+            { id: 'album', icon: '🎨', name: 'Album Colors', color: '#3a1f5c' }
         ];
         let currentThemeIndex = 0;
 
@@ -1005,7 +1005,6 @@
             }
             localStorage.setItem('exna_theme', themeId);
 
-            // Se mudou para o tema album, atualiza as cores do álbum atual
             if (themeId === 'album' && library[currentIndex]) {
                 updateAlbumThemeColors(library[currentIndex]);
             }
@@ -1030,7 +1029,7 @@
             renderPlaylists();
             if (fromModal && currentModalSongIndex !== null) {
                 addSongToPlaylist(id, library[currentModalSongIndex].dbId);
-                openPlaylistModal(currentModalSongIndex); // atualiza modal
+                openPlaylistModal(currentModalSongIndex);
             }
         }
 
@@ -1083,7 +1082,6 @@
             return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
         }
 
-        /* Modal de adicionar à playlist */
         function openPlaylistModal(songIndex) {
             currentModalSongIndex = songIndex;
             const song = library[songIndex];
@@ -1126,7 +1124,7 @@
                 addSongToPlaylist(playlistId, song.dbId);
             }
             renderPlaylists();
-            openPlaylistModal(currentModalSongIndex); // re-render
+            openPlaylistModal(currentModalSongIndex);
             renderLibrary();
         }
 
@@ -1156,7 +1154,6 @@
                         }
 
                         if (vibrant.length === 0) {
-                            // média geral
                             let r=0,g=0,b=0,n=0;
                             for (let i = 0; i < data.length; i += 4) { r+=data[i]; g+=data[i+1]; b+=data[i+2]; n++; }
                             r=Math.round(r/n); g=Math.round(g/n); b=Math.round(b/n);
@@ -1187,30 +1184,38 @@
             });
         }
 
+        /* ============ TEMA ALBUM SUAVIZADO ============ */
         async function updateAlbumThemeColors(song) {
             if (!song) return;
             const imgUrl = song.thumbUrl || 'icon.png';
             const colors = await extractAlbumColors(imgUrl);
             if (!colors) return;
 
-            const dark = (c, f) => {
-                const r = Math.round(c.r * f);
-                const g = Math.round(c.g * f);
-                const b = Math.round(c.b * f);
-                return `rgb(${r},${g},${b})`;
+            // Dessaturar + escurecer mantendo harmonia entre as cores
+            const soften = (c, satFactor, brightness) => {
+                const avg = (c.r + c.g + c.b) / 3;
+                const r = Math.max(0, Math.min(255, Math.round((avg + (c.r - avg) * satFactor) * brightness)));
+                const g = Math.max(0, Math.min(255, Math.round((avg + (c.g - avg) * satFactor) * brightness)));
+                const b = Math.max(0, Math.min(255, Math.round((avg + (c.b - avg) * satFactor) * brightness)));
+                return { r, g, b };
             };
 
-            const root = document.documentElement;
-            root.style.setProperty('--album-c1', dark(colors.c1, 0.18));
-            root.style.setProperty('--album-c2', `rgb(${colors.c2.r},${colors.c2.g},${colors.c2.b})`);
-            root.style.setProperty('--album-c3', `rgb(${colors.c3.r},${colors.c3.g},${colors.c3.b})`);
-            root.style.setProperty('--album-base', dark(colors.c1, 0.10));
+            const toRgb = (c) => `rgb(${c.r},${c.g},${c.b})`;
 
-            // Atualiza theme-color do navegador com a cor dominante
-            if (document.documentElement.getAttribute('data-theme') === 'album') {
-                document.getElementById('theme-color-meta').setAttribute('content',
-                    `rgb(${colors.c1.r},${colors.c1.g},${colors.c1.b})`);
-            }
+            const base   = soften(colors.c1, 0.45, 0.22);
+            const mid    = soften(colors.c1, 0.50, 0.45);
+            const accent = soften(colors.c2, 0.55, 0.62);
+
+            const root = document.documentElement;
+            root.style.setProperty('--album-c1', toRgb(base));
+            root.style.setProperty('--album-c2', toRgb(mid));
+            root.style.setProperty('--album-c3', toRgb(accent));
+            root.style.setProperty('--album-base', toRgb(base));
+
+            // Atualiza a cor da status bar (topo) e do fundo do navegador
+            const themeColor = toRgb(base);
+            document.getElementById('theme-color-meta').setAttribute('content', themeColor);
+            document.documentElement.style.backgroundColor = themeColor;
         }
 
         /* ============ NAVEGAÇÃO / VIEWS ============ */
@@ -1231,8 +1236,6 @@
             } else if (view === 'playlist') {
                 const pl = playlists.find(p => p.id === playlistId);
                 title.innerText = pl ? pl.name : 'Playlist';
-                const el = document.querySelector(`.playlist-item.active`);
-                // Ativa visualmente a playlist selecionada (re-render)
             }
             renderPlaylists();
             renderLibrary();
@@ -1297,7 +1300,6 @@
         function removeSong(globalIndex) {
             const song = library[globalIndex];
             if (song && song.dbId) deleteSongFromDB(song.dbId);
-            // Remove das playlists
             playlists.forEach(pl => {
                 pl.songIds = pl.songIds.filter(id => id !== song.dbId);
             });
@@ -1336,7 +1338,6 @@
             updateCurrentSongUI();
             localStorage.setItem('exna_last_index', currentIndex);
 
-            // Atualiza cores do tema album
             if (document.documentElement.getAttribute('data-theme') === 'album') {
                 updateAlbumThemeColors(song);
             }

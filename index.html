@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
-    <!-- ===== SEO PRINCIPAL ===== -->
     <title>EXNA Music — Player de Música Offline Grátis | Ouça Sem Internet</title>
     <meta name="description" content="EXNA Music: player de música offline grátis para Android, iPhone e PC. Adicione seus MP3, crie playlists, favorite suas músicas e ouça sem internet, sem anúncios. Criado por NaldoA.">
     <meta name="keywords" content="player de música offline, ouvir música sem internet, player mp3 grátis, app de música offline, tocar mp3 sem internet, player de áudio web, exna music, naldoa, exna player, reprodutor de música offline">
@@ -15,7 +14,6 @@
     <meta name="revisit-after" content="7 days">
     <link rel="canonical" href="https://naldoaplay.github.io/exnamusic/">
 
-    <!-- ===== OPEN GRAPH (Facebook / WhatsApp / etc) ===== -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://naldoaplay.github.io/exnamusic/">
     <meta property="og:title" content="EXNA Music — Player de Música Offline Grátis">
@@ -26,13 +24,11 @@
     <meta property="og:locale" content="pt_BR">
     <meta property="og:site_name" content="EXNA Music">
 
-    <!-- ===== TWITTER CARD ===== -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="EXNA Music — Player de Música Offline Grátis">
     <meta name="twitter:description" content="Ouça suas músicas favoritas sem internet! Player offline grátis, sem anúncios.">
     <meta name="twitter:image" content="https://naldoaplay.github.io/exnamusic/icon.png">
 
-    <!-- ===== PWA ===== -->
     <link rel="manifest" href="manifest.json">
     <meta id="theme-color-meta" name="theme-color" content="#090a0f">
     <meta name="mobile-web-app-capable" content="yes">
@@ -42,15 +38,13 @@
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
     <meta name="google-site-verification" content="PZFFJm_Wbf1_G96H6vLLwWTxFwV8BVkNG5f26izxQ_g" />
-    <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-EDSGZ5JD94"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-EDSGZ5JD94');
-</script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-EDSGZ5JD94"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-EDSGZ5JD94');
+    </script>
 
     <script src="jsmediatags.min.js"></script>
     <style>
@@ -188,7 +182,6 @@
             transition: color 0.4s ease;
         }
 
-        /* SEO — texto invisível mas indexável */
         .seo-hidden {
             position: absolute;
             left: -9999px;
@@ -615,7 +608,7 @@
             -webkit-backdrop-filter: blur(60px);
             z-index: 100;
             transition: top 0.4s cubic-bezier(0.1, 0.9, 0.2, 1);
-            display: flex; flex-direction: column; gap: 10px;
+            display: flex; flex-direction: column;
             padding: calc(env(safe-area-inset-top, 30px) + 10px) 20px 0 20px;
             overflow-y: hidden;
             animation: gradientFlow var(--gradient-duration) ease-in-out infinite;
@@ -625,7 +618,8 @@
 
         .expanded-header {
             display: flex; justify-content: space-between; align-items: center;
-            width: 100%; max-width: 400px; margin: 0 auto; flex-shrink: 0;
+            width: 100%; max-width: 400px; margin: 0 auto;
+            flex-shrink: 0;
         }
 
         .expanded-action-btn {
@@ -640,6 +634,20 @@
         }
         .expanded-action-btn:hover { background: var(--glass-hover); transform: scale(1.05); }
 
+        .expanded-main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            min-height: 0;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            transition: gap 0.4s cubic-bezier(0.1, 0.9, 0.2, 1);
+        }
+
         .expanded-art-container {
             width: 100%; max-width: 230px; height: 230px;
             margin: 0 auto; border-radius: 24px;
@@ -649,15 +657,16 @@
             display: flex; align-items: center; justify-content: center;
             overflow: hidden; flex-shrink: 0;
             backdrop-filter: blur(20px);
-            transition: transform 0.2s ease;
+            transition: max-width 0.45s cubic-bezier(0.1, 0.9, 0.2, 1),
+                        height 0.45s cubic-bezier(0.1, 0.9, 0.2, 1),
+                        transform 0.2s ease;
         }
         .expanded-art-container img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none; -webkit-user-drag: none; }
 
-        /* Feedback visual quando desliza para trocar de música */
         .expanded-art-container.swipe-left { transform: translateX(-15px) scale(0.97); }
         .expanded-art-container.swipe-right { transform: translateX(15px) scale(0.97); }
 
-        .expanded-info { text-align: center; margin: 0; flex-shrink: 0; }
+        .expanded-info { text-align: center; margin: 0; flex-shrink: 0; width: 100%; }
         .expanded-info h2 {
             font-size: 20px; font-weight: 700; margin-bottom: 6px;
             letter-spacing: -0.4px;
@@ -667,7 +676,7 @@
 
         .expanded-controls-box {
             display: flex; flex-direction: column; gap: 12px;
-            max-width: 400px; margin: 0 auto; width: 100%; flex-shrink: 0;
+            width: 100%; flex-shrink: 0;
         }
 
         .big-buttons {
@@ -697,6 +706,7 @@
         .big-play-btn svg { width: 24px; height: 24px; fill: #fff; }
         .big-play-btn:hover { transform: scale(1.06); }
 
+        /* ===== FILA DE REPRODUÇÃO ===== */
         .expanded-playlist-section {
             flex: 1;
             min-height: 0;
@@ -707,12 +717,55 @@
             flex-direction: column;
             gap: 6px;
             overflow: hidden;
+            padding-top: 6px;
+            transition: flex 0.45s cubic-bezier(0.1, 0.9, 0.2, 1),
+                        padding 0.45s cubic-bezier(0.1, 0.9, 0.2, 1);
         }
 
+        /* Header da lista — com o botão alinhado à direita */
         .playlist-header {
-            font-size: 11px; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 0.8px; color: var(--text-secondary);
-            flex-shrink: 0; padding-left: 4px; padding-bottom: 2px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+            padding: 4px 4px 6px 4px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        /* Botão compacto — fica no canto direito do header */
+        .queue-toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            padding: 5px 12px;
+            border-radius: 100px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            user-select: none;
+            -webkit-user-select: none;
+            flex-shrink: 0;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .queue-toggle-btn:hover { background: var(--glass-hover); }
+        .queue-toggle-btn:active { transform: scale(0.95); }
+        .queue-toggle-btn svg {
+            width: 10px;
+            height: 10px;
+            fill: currentColor;
+            transition: transform 0.35s cubic-bezier(0.1, 0.9, 0.2, 1);
         }
 
         .expanded-playlist-section .song-grid {
@@ -723,6 +776,45 @@
             gap: 10px;
             padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
             -webkit-overflow-scrolling: touch;
+            transition: flex 0.45s cubic-bezier(0.1, 0.9, 0.2, 1),
+                        max-height 0.45s cubic-bezier(0.1, 0.9, 0.2, 1),
+                        opacity 0.3s ease,
+                        padding 0.45s cubic-bezier(0.1, 0.9, 0.2, 1);
+        }
+
+        /* ===== ESTADO ESCONDIDO: só o grid some, o header com o botão continua visível ===== */
+        .expanded-player.queue-hidden .expanded-playlist-section {
+            flex: 0 0 auto;
+            padding-top: 6px;
+        }
+
+        .expanded-player.queue-hidden .expanded-playlist-section .song-grid {
+            flex: 0 0 0;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            padding: 0;
+            gap: 0;
+            pointer-events: none;
+        }
+
+        .expanded-player.queue-hidden .playlist-header #playlist-header-text {
+            opacity: 0.45;
+        }
+
+        .expanded-player.queue-hidden .expanded-main-area {
+            justify-content: space-evenly;
+            gap: 18px;
+            padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 20px);
+        }
+
+        .expanded-player.queue-hidden .expanded-art-container {
+            max-width: 300px;
+            height: 300px;
+        }
+
+        .expanded-player.queue-hidden .queue-toggle-btn svg {
+            transform: rotate(180deg);
         }
 
         .empty-state { text-align: center; padding: 24px; color: var(--text-secondary); }
@@ -811,10 +903,11 @@
 
         @media (prefers-reduced-motion: reduce) {
             html, header, footer, .expanded-player { animation: none; }
+            .expanded-art-container, .expanded-playlist-section, .expanded-main-area,
+            .expanded-playlist-section .song-grid { transition: none; }
         }
     </style>
 
-    <!-- ===== DADOS ESTRUTURADOS PARA GOOGLE (Rich Snippets) ===== -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -828,44 +921,19 @@
       "operatingSystem": "Web, Android, iOS, Windows, macOS, Linux",
       "browserRequirements": "Requer JavaScript",
       "inLanguage": "pt-BR",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "BRL"
-      },
-      "author": {
-        "@type": "Person",
-        "name": "NaldoA",
-        "url": "https://naldoa-dm.web.app"
-      },
-      "publisher": {
-        "@type": "Organization",
-        "name": "EXNA Music",
-        "logo": {
-          "@type": "ImageObject",
-          "url": "https://naldoaplay.github.io/exnamusic/icon.png"
-        }
-      },
-      "featureList": [
-        "Player de música offline",
-        "Sem anúncios",
-        "Criar playlists",
-        "Favoritar músicas",
-        "Múltiplos temas de cores",
-        "Funciona em qualquer navegador",
-        "Instalável como app (PWA)"
-      ]
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+      "author": { "@type": "Person", "name": "NaldoA", "url": "https://naldoa-dm.web.app" },
+      "publisher": { "@type": "Organization", "name": "EXNA Music", "logo": { "@type": "ImageObject", "url": "https://naldoaplay.github.io/exnamusic/icon.png" } },
+      "featureList": ["Player de música offline", "Sem anúncios", "Criar playlists", "Favoritar músicas", "Múltiplos temas de cores", "Funciona em qualquer navegador", "Instalável como app (PWA)"]
     }
     </script>
 </head>
 <body data-theme="default">
 
-    <!-- Texto invisível para SEO (não aparece pro usuário, mas o Google lê) -->
     <div class="seo-hidden" aria-hidden="true">
         <h1>EXNA Music — Player de Música Offline Grátis</h1>
         <h2>Ouça suas músicas favoritas sem internet, sem anúncios</h2>
-        <p>EXNA Music é um player de música offline grátis criado por NaldoA. Adicione seus arquivos MP3, WAV, FLAC, M4A e outros formatos. Crie playlists personalizadas, favorite suas faixas preferidas e ouça em qualquer lugar, sem precisar de internet. Funciona em Android, iPhone, PC e Mac como um aplicativo instalável (PWA). Sem anúncios, sem cadastro, sem complicação. Todos os arquivos ficam salvos no seu dispositivo com total privacidade.</p>
-        <p>Palavras-chave: player de música offline, ouvir música sem internet, player mp3 grátis, app de música offline, tocar mp3 sem internet, reprodutor de música web, exna music, exna player, naldoa music, aplicativo de música offline grátis.</p>
+        <p>EXNA Music é um player de música offline grátis criado por NaldoA. Adicione seus arquivos MP3, WAV, FLAC, M4A e outros formatos. Crie playlists personalizadas, favorite suas faixas preferidas e ouça em qualquer lugar, sem precisar de internet. Funciona em Android, iPhone, PC e Mac como um aplicativo instalável (PWA). Sem anúncios, sem cadastro, sem complicação.</p>
     </div>
 
     <header class="glass-panel" style="border-left:none; border-right:none; border-top:none;">
@@ -993,37 +1061,48 @@
             <h3 style="font-size: 13px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-secondary);">EXNA PLAYER</h3>
             <button class="expanded-action-btn" id="expanded-fav-btn" onclick="toggleFavoriteCurrent()" title="Favoritar">🤍</button>
         </div>
-        <div class="expanded-art-container" id="expanded-thumb"><img src="icon.png" alt="EXNA"></div>
-        <div class="expanded-info">
-            <h2 id="expanded-title">Nenhuma música</h2>
-            <p id="expanded-artist">EXNA MUSIC</p>
-        </div>
-        <div class="expanded-controls-box">
-            <div class="progress-container" style="font-size: 12px;">
-                <span id="exp-current-time">0:00</span>
-                <input type="range" id="exp-progress-bar" value="0" max="100" oninput="seekAudio(this.value)">
-                <span id="exp-duration">0:00</span>
+
+        <div class="expanded-main-area">
+            <div class="expanded-art-container" id="expanded-thumb"><img src="icon.png" alt="EXNA"></div>
+            <div class="expanded-info">
+                <h2 id="expanded-title">Nenhuma música</h2>
+                <p id="expanded-artist">EXNA MUSIC</p>
             </div>
-            <div class="big-buttons">
-                <button class="big-btn" id="shuffle-exp-btn" onclick="toggleShuffle()" title="Aleatório">
-                    <svg viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41M14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5m.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>
-                </button>
-                <button class="big-btn" onclick="prevSong()" title="Anterior">
-                    <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
-                </button>
-                <button class="big-play-btn" id="expanded-play-btn" onclick="togglePlay()" title="Play/Pause">
-                    <svg class="play-icon-svg" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                </button>
-                <button class="big-btn" onclick="nextSong()" title="Seguinte">
-                    <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
-                </button>
-                <button class="big-btn" id="repeat-exp-btn" onclick="toggleRepeat()" title="Repetir">
-                    <svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
-                </button>
+            <div class="expanded-controls-box">
+                <div class="progress-container" style="font-size: 12px;">
+                    <span id="exp-current-time">0:00</span>
+                    <input type="range" id="exp-progress-bar" value="0" max="100" oninput="seekAudio(this.value)">
+                    <span id="exp-duration">0:00</span>
+                </div>
+                <div class="big-buttons">
+                    <button class="big-btn" id="shuffle-exp-btn" onclick="toggleShuffle()" title="Aleatório">
+                        <svg viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41M14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5m.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>
+                    </button>
+                    <button class="big-btn" onclick="prevSong()" title="Anterior">
+                        <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+                    </button>
+                    <button class="big-play-btn" id="expanded-play-btn" onclick="togglePlay()" title="Play/Pause">
+                        <svg class="play-icon-svg" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    </button>
+                    <button class="big-btn" onclick="nextSong()" title="Seguinte">
+                        <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+                    </button>
+                    <button class="big-btn" id="repeat-exp-btn" onclick="toggleRepeat()" title="Repetir">
+                        <svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
+                    </button>
+                </div>
             </div>
         </div>
+
+        <!-- FILA DE REPRODUÇÃO — o botão fica no header, alinhado à direita -->
         <div class="expanded-playlist-section">
-            <div class="playlist-header">Fila de Reprodução Atual</div>
+            <div class="playlist-header">
+                <span id="playlist-header-text">Fila de Reprodução Atual</span>
+                <button class="queue-toggle-btn" id="queue-toggle-btn" onclick="toggleQueue()">
+                    <span id="queue-toggle-label">Ocultar</span>
+                    <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+                </button>
+            </div>
             <div class="song-grid" id="expanded-song-list"></div>
         </div>
     </div>
@@ -1054,6 +1133,7 @@
         let isRepeat = false;
         let playlists = JSON.parse(localStorage.getItem('exna_playlists') || '[]');
         let currentModalSongIndex = null;
+        let queueHidden = localStorage.getItem('exna_queue_hidden') === 'true';
 
         const audioElement = document.getElementById('audio-element');
         const fileInput = document.getElementById('file-input');
@@ -1144,6 +1224,7 @@
             const savedTheme = localStorage.getItem('exna_theme') || 'default';
             applyTheme(savedTheme);
             renderPlaylists();
+            applyQueueState();
         });
 
         const themes = [
@@ -1176,6 +1257,27 @@
         function cycleTheme() {
             currentThemeIndex = (currentThemeIndex + 1) % themes.length;
             applyTheme(themes[currentThemeIndex].id);
+        }
+
+        /* ===== TOGGLE DA FILA — VER / OCULTAR ===== */
+        function toggleQueue() {
+            queueHidden = !queueHidden;
+            applyQueueState();
+            localStorage.setItem('exna_queue_hidden', queueHidden ? 'true' : 'false');
+        }
+
+        function applyQueueState() {
+            const label = document.getElementById('queue-toggle-label');
+            const headerText = document.getElementById('playlist-header-text');
+            if (queueHidden) {
+                expandedPlayer.classList.add('queue-hidden');
+                if (label) label.innerText = 'Mostrar';
+                if (headerText) headerText.innerText = 'Lista oculta';
+            } else {
+                expandedPlayer.classList.remove('queue-hidden');
+                if (label) label.innerText = 'Ocultar';
+                if (headerText) headerText.innerText = 'Fila de Reprodução Atual';
+            }
         }
 
         function savePlaylists() {
@@ -1667,7 +1769,6 @@
         let sidebarTouchStartY = 0;
         let sidebarTracking = false;
 
-        // Gestos de swipe horizontal no ART do player expandido (trocar música)
         let artTouchStartX = 0;
         let artTouchStartY = 0;
         let artTracking = false;
@@ -1682,7 +1783,6 @@
         expandedArt.addEventListener('touchmove', (e) => {
             if (!artTracking) return;
             const dx = e.touches[0].clientX - artTouchStartX;
-            // Feedback visual em tempo real
             expandedArt.classList.remove('swipe-left', 'swipe-right');
             if (dx > 30) expandedArt.classList.add('swipe-right');
             else if (dx < -30) expandedArt.classList.add('swipe-left');
@@ -1696,20 +1796,13 @@
 
             expandedArt.classList.remove('swipe-left', 'swipe-right');
 
-            // Só conta se for horizontal dominante
             if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
-                if (dx < 0) {
-                    // Deslizou pra ESQUERDA → próxima música
-                    nextSong();
-                } else {
-                    // Deslizou pra DIREITA → música anterior
-                    prevSong();
-                }
+                if (dx < 0) nextSong();
+                else prevSong();
             }
             artTracking = false;
         }, { passive: true });
 
-        // Swipe vertical (abrir/fechar player) e swipe lateral (sidebar)
         window.addEventListener('touchstart', (e) => {
             const t = e.touches[0];
             const x = t.clientX;
@@ -1780,8 +1873,12 @@
                 window.jsmediatags.read(file, {
                     onSuccess: function(tag) {
                         const tags = tag.tags;
-                        if (tags.title) song.name = tags.title;
-                        if (tags.artist && tags.artist.trim() !== "") song.artist = tags.artist;
+                        if (tags.title && tags.title.trim() !== "") song.name = tags.title;
+
+                        if (tags.artist && tags.artist.trim() !== "" && !isUnknownArtist(tags.artist)) {
+                            song.artist = tags.artist.trim();
+                        }
+
                         if (tags.picture) {
                             const data = tags.picture.data;
                             const format = tags.picture.format;
@@ -1797,7 +1894,21 @@
             fileInput.value = '';
         });
 
+        function isUnknownArtist(artist) {
+            const a = String(artist).trim().toLowerCase();
+            const desconhecidos = [
+                "unknown", "unknown artist", "artista desconhecido", "desconhecido",
+                "desconhecida", "various artists", "vários artistas", "varios artistas",
+                "va", "n/a", "na", "none", "null", "undefined", "-", "?", "sem artista",
+                "no artist", "nao informado", "não informado", "sem informação", "sem informacao"
+            ];
+            return desconhecidos.includes(a);
+        }
+
         function pushSong(song) {
+            if (!song.artist || song.artist.trim() === "" || isUnknownArtist(song.artist)) {
+                song.artist = "EXNA MUSIC";
+            }
             library.push(song);
             saveSongToDB(song);
             renderLibrary();

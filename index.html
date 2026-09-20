@@ -18,7 +18,10 @@
     <meta property="og:title" content="EXNA Music — Player de Música Offline Grátis">
     <meta property="og:description" content="Ouça suas músicas favoritas sem internet! Player offline grátis, sem anúncios, criado por NaldoA.">
     <meta property="og:image" content="https://naldoaplay.github.io/exnamusic/icon.png">
+    <meta property="og:image:width" content="512">
+    <meta property="og:image:height" content="512">
     <meta property="og:locale" content="pt_BR">
+    <meta property="og:site_name" content="EXNA Music">
 
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="EXNA Music — Player de Música Offline Grátis">
@@ -434,11 +437,6 @@
         let currentModalSongIndex = null;
         let queueHidden = localStorage.getItem('exna_queue_hidden') === 'true';
 
-        // Pede armazenamento persistente (ajuda em alguns navegadores)
-        if (navigator.storage && navigator.storage.persist) {
-            navigator.storage.persist().catch(() => {});
-        }
-
         const audioElement = document.getElementById('audio-element');
         const fileInput = document.getElementById('file-input');
         const sidebar = document.getElementById('sidebar-drawer');
@@ -458,46 +456,28 @@
         };
 
         let db;
-        const dbRequest = indexedDB.open("ExnaMusicDB", 2); // versão 2
-
+        const dbRequest = indexedDB.open("ExnaMusicDB", 1);
         dbRequest.onupgradeneeded = function(e) {
             db = e.target.result;
             if (!db.objectStoreNames.contains("songs")) {
                 db.createObjectStore("songs", { keyPath: "id", autoIncrement: true });
             }
         };
-
         dbRequest.onsuccess = function(e) {
             db = e.target.result;
-            console.log('[EXNA] DB aberto ✅');
             loadSongsFromDB();
         };
 
-        dbRequest.onerror = function(e) {
-            console.error('[EXNA] Erro DB:', e.target.error);
-        };
-
-        // ⚡ SALVA COM ArrayBuffer (funciona em Android)
-        function saveSongToDB(songData, callback) {
-            if (!db) { console.error('[EXNA] DB não pronto'); return; }
+        function saveSongToDB(songData) {
+            if (!db) return;
             const tx = db.transaction(["songs"], "readwrite");
-            const store = tx.objectStore("songs");
-            const req = store.add(songData);
-            req.onsuccess = function(e) {
-                console.log('[EXNA] ✅ Salvo ID:', e.target.result);
-                if (callback) callback(e.target.result);
-            };
-            req.onerror = function(e) {
-                console.error('[EXNA] ❌ Erro salvar:', e.target.error);
-            };
+            tx.objectStore("songs").add(songData);
         }
-
         function deleteSongFromDB(id) {
             if (!db) return;
             const tx = db.transaction(["songs"], "readwrite");
             tx.objectStore("songs").delete(id);
         }
-
         function updateFavoriteInDB(dbId, favorite) {
             if (!db || !dbId) return;
             const tx = db.transaction(["songs"], "readwrite");
@@ -505,47 +485,26 @@
             const req = store.get(dbId);
             req.onsuccess = function() {
                 const data = req.result;
-                if (data) {
-                    data.favorite = favorite;
-                    store.put(data);
-                }
+                if (data) { data.favorite = favorite; store.put(data); }
             };
         }
-
-        // ⚡ CARREGA COM suporte a ArrayBuffer (novo) E File (antigo)
         function loadSongsFromDB() {
             if (!db) return;
             const tx = db.transaction(["songs"], "readonly");
             const req = tx.objectStore("songs").getAll();
             req.onsuccess = function() {
                 const saved = req.result;
-                console.log('[EXNA] 📦 Carregadas', saved.length, 'músicas');
-
                 if (saved && saved.length > 0) {
                     saved.forEach(item => {
-                        try {
-                            let url = null;
-                            if (item.buffer) {
-                                const blob = new Blob([item.buffer], { type: item.fileType || 'audio/mpeg' });
-                                url = URL.createObjectURL(blob);
-                            } else if (item.file) {
-                                url = URL.createObjectURL(item.file);
-                            }
-                            if (url) {
-                                library.push({
-                                    dbId: item.id,
-                                    name: item.name,
-                                    artist: item.artist || "EXNA MUSIC",
-                                    url: url,
-                                    arrayBuffer: item.buffer || null,
-                                    fileType: item.fileType || null,
-                                    thumbUrl: item.thumbUrl || null,
-                                    favorite: item.favorite || false
-                                });
-                            }
-                        } catch (err) {
-                            console.error('[EXNA] Erro carregar:', item.name, err);
-                        }
+                        library.push({
+                            dbId: item.id,
+                            name: item.name,
+                            artist: item.artist || "EXNA MUSIC",
+                            file: item.file,
+                            url: URL.createObjectURL(item.file),
+                            thumbUrl: item.thumbUrl || null,
+                            favorite: item.favorite || false
+                        });
                     });
                     renderLibrary();
                     renderPlaylists();
@@ -594,18 +553,15 @@
             localStorage.setItem('exna_theme', themeId);
             if (themeId === 'album' && library[currentIndex]) updateAlbumThemeColors(library[currentIndex]);
         }
-
         function cycleTheme() {
             currentThemeIndex = (currentThemeIndex + 1) % themes.length;
             applyTheme(themes[currentThemeIndex].id);
         }
-
         function toggleQueue() {
             queueHidden = !queueHidden;
             applyQueueState();
             localStorage.setItem('exna_queue_hidden', queueHidden ? 'true' : 'false');
         }
-
         function applyQueueState() {
             const label = document.getElementById('queue-toggle-label');
             const headerText = document.getElementById('playlist-header-text');
@@ -619,7 +575,6 @@
                 if (headerText) headerText.innerText = 'Fila de Reprodução Atual';
             }
         }
-
         function savePlaylists() { localStorage.setItem('exna_playlists', JSON.stringify(playlists)); }
 
         function createPlaylistPrompt(fromModal) {
@@ -634,7 +589,6 @@
                 openPlaylistModal(currentModalSongIndex);
             }
         }
-
         function deletePlaylistPrompt(id) {
             const pl = playlists.find(p => p.id === id);
             if (!pl) return;
@@ -644,20 +598,17 @@
             if (currentPlaylistId === id) selectView('all');
             renderPlaylists();
         }
-
         function addSongToPlaylist(playlistId, songDbId) {
             const pl = playlists.find(p => p.id === playlistId);
             if (!pl) return;
             if (!pl.songIds.includes(songDbId)) { pl.songIds.push(songDbId); savePlaylists(); }
         }
-
         function removeSongFromPlaylist(playlistId, songDbId) {
             const pl = playlists.find(p => p.id === playlistId);
             if (!pl) return;
             pl.songIds = pl.songIds.filter(id => id !== songDbId);
             savePlaylists();
         }
-
         function renderPlaylists() {
             const container = document.getElementById('playlists-list');
             if (!container) return;
@@ -674,11 +625,9 @@
                 </div>
             `).join('');
         }
-
         function escapeHtml(str) {
             return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
         }
-
         function openPlaylistModal(songIndex) {
             currentModalSongIndex = songIndex;
             const song = library[songIndex];
@@ -698,12 +647,10 @@
             }
             document.getElementById('playlist-modal').classList.add('open');
         }
-
         function closePlaylistModal() {
             document.getElementById('playlist-modal').classList.remove('open');
             currentModalSongIndex = null;
         }
-
         function toggleSongInPlaylist(playlistId) {
             if (currentModalSongIndex === null) return;
             const song = library[currentModalSongIndex];
@@ -716,7 +663,6 @@
             openPlaylistModal(currentModalSongIndex);
             renderLibrary();
         }
-
         function extractAlbumColors(imageUrl) {
             return new Promise((resolve) => {
                 const img = new Image();
@@ -763,7 +709,6 @@
                 img.src = imageUrl;
             });
         }
-
         async function updateAlbumThemeColors(song) {
             if (!song) return;
             const colors = await extractAlbumColors(song.thumbUrl || 'icon.png');
@@ -789,7 +734,6 @@
             document.getElementById('theme-color-meta').setAttribute('content', tc);
             document.documentElement.style.backgroundColor = tc;
         }
-
         function selectView(view, playlistId) {
             currentView = view;
             currentPlaylistId = (view === 'playlist') ? playlistId : null;
@@ -809,7 +753,6 @@
             renderPlaylists();
             renderLibrary();
         }
-
         function getActiveList() {
             if (currentView === 'playlist' && currentPlaylistId) {
                 const pl = playlists.find(p => p.id === currentPlaylistId);
@@ -819,7 +762,6 @@
             if (currentView === 'favorites') return library.filter(s => s.favorite);
             return library;
         }
-
         function buildCard(song) {
             const globalIndex = library.indexOf(song);
             const isCurrent = library[currentIndex] === song;
@@ -846,7 +788,6 @@
                 </div>
             `;
         }
-
         function renderLibrary() {
             const listContainer = document.getElementById('song-list');
             const expListContainer = document.getElementById('expanded-song-list');
@@ -869,7 +810,6 @@
             }
             expListContainer.innerHTML = expList.map(buildCard).join('');
         }
-
         function removeSong(globalIndex) {
             const song = library[globalIndex];
             if (song && song.dbId) deleteSongFromDB(song.dbId);
@@ -892,9 +832,7 @@
                 updatePlayButtons(false);
             }
         }
-
         function loadSongByGlobalIndex(globalIndex) { currentIndex = globalIndex; loadSong(currentIndex); }
-
         function loadSong(index) {
             if (library.length === 0) return;
             currentIndex = index;
@@ -919,7 +857,6 @@
                 renderLibrary();
             }).catch(err => console.log("Erro:", err));
         }
-
         function updateCurrentSongUI() {
             if (!library[currentIndex]) return;
             const song = library[currentIndex];
@@ -936,7 +873,6 @@
             if (song.favorite) favBtn.classList.add('is-fav');
             else favBtn.classList.remove('is-fav');
         }
-
         function togglePlay() {
             if (!audioElement.src) {
                 const active = getActiveList();
@@ -947,7 +883,6 @@
             if (audioElement.paused) { audioElement.play(); updatePlayButtons(true); }
             else { audioElement.pause(); updatePlayButtons(false); }
         }
-
         function updatePlayButtons(isPlaying) {
             const p1 = "M8 5v14l11-7z";
             const p2 = "M6 19h4V5H6v14zm8-14v14h4V5h-4z";
@@ -955,7 +890,6 @@
                 icon.innerHTML = `<path d="${isPlaying ? p2 : p1}"></path>`;
             });
         }
-
         function toggleShuffle() {
             isShuffle = !isShuffle;
             const a = document.getElementById('shuffle-mini-btn');
@@ -963,18 +897,15 @@
             if (isShuffle) { a.classList.add('active-mode'); b.classList.add('active-mode'); }
             else { a.classList.remove('active-mode'); b.classList.remove('active-mode'); }
         }
-
         function toggleRepeat() {
             isRepeat = !isRepeat;
             const b = document.getElementById('repeat-exp-btn');
             if (b) b.classList.toggle('active-mode', isRepeat);
         }
-
         audioElement.addEventListener('ended', () => {
             if (isRepeat) audioElement.play();
             else nextSong();
         });
-
         function nextSong() {
             const activeList = getActiveList();
             if (activeList.length === 0) return;
@@ -986,7 +917,6 @@
             }
             loadSong(currentIndex);
         }
-
         function prevSong() {
             const activeList = getActiveList();
             if (activeList.length === 0) return;
@@ -998,7 +928,6 @@
             }
             loadSong(currentIndex);
         }
-
         audioElement.addEventListener('timeupdate', () => {
             if (audioElement.duration) {
                 localStorage.setItem('exna_last_time', audioElement.currentTime);
@@ -1013,7 +942,6 @@
                 document.getElementById('exp-duration').innerText = fd;
             }
         });
-
         audioElement.addEventListener('play', () => {
             document.documentElement.classList.add('playing');
             updatePlayButtons(true);
@@ -1022,17 +950,14 @@
             document.documentElement.classList.remove('playing');
             updatePlayButtons(false);
         });
-
         function seekAudio(val) {
             if (audioElement.duration) audioElement.currentTime = (val / 100) * audioElement.duration;
         }
-
         function formatTime(seconds) {
             const mins = Math.floor(seconds / 60);
             const secs = Math.floor(seconds % 60);
             return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
         }
-
         function toggleFavorite(globalIndex) {
             const song = library[globalIndex];
             if (!song) return;
@@ -1041,24 +966,30 @@
             renderLibrary();
             if (currentIndex === globalIndex) updateCurrentSongUI();
         }
-
         function toggleFavoriteCurrent() { if (library[currentIndex]) toggleFavorite(currentIndex); }
-
         function toggleSidebar() {
             sidebar.classList.toggle('open');
             sidebarOverlay.classList.toggle('open');
         }
-
         function openExpandedPlayer() { expandedPlayer.classList.add('open'); }
         function closeExpandedPlayer() { expandedPlayer.classList.remove('open'); }
 
-        let playerTouchStartY = 0, playerTouchStartX = 0;
-        let sidebarTouchStartX = 0, sidebarTouchStartY = 0, sidebarTracking = false;
-        let artTouchStartX = 0, artTouchStartY = 0, artTracking = false;
+        /* ============ GESTOS ============ */
+        let playerTouchStartY = 0;
+        let playerTouchStartX = 0;
+        let sidebarTouchStartX = 0;
+        let sidebarTouchStartY = 0;
+        let sidebarTracking = false;
+
+        let artTouchStartX = 0;
+        let artTouchStartY = 0;
+        let artTracking = false;
 
         expandedArt.addEventListener('touchstart', (e) => {
             const t = e.touches[0];
-            artTouchStartX = t.clientX; artTouchStartY = t.clientY; artTracking = true;
+            artTouchStartX = t.clientX;
+            artTouchStartY = t.clientY;
+            artTracking = true;
         }, { passive: true });
 
         expandedArt.addEventListener('touchmove', (e) => {
@@ -1084,38 +1015,52 @@
 
         window.addEventListener('touchstart', (e) => {
             const t = e.touches[0];
-            const x = t.clientX, y = t.clientY;
-            if (y > window.innerHeight - 180 || expandedPlayer.classList.contains('open')) {
-                playerTouchStartY = y; playerTouchStartX = x;
+            const x = t.clientX;
+            const y = t.clientY;
+
+            // Só rastreia gesto do player quando ele JÁ está aberto (pra fechar)
+            if (expandedPlayer.classList.contains('open')) {
+                playerTouchStartY = y;
+                playerTouchStartX = x;
             }
+
             if (x < 32 || sidebar.classList.contains('open')) {
-                sidebarTouchStartX = x; sidebarTouchStartY = y; sidebarTracking = true;
-            } else { sidebarTracking = false; }
+                sidebarTouchStartX = x;
+                sidebarTouchStartY = y;
+                sidebarTracking = true;
+            } else {
+                sidebarTracking = false;
+            }
         }, { passive: true });
 
         window.addEventListener('touchend', (e) => {
             const t = e.changedTouches[0];
-            const x = t.clientX, y = t.clientY;
+            const x = t.clientX;
+            const y = t.clientY;
+
             if (sidebarTracking) {
                 const dx = x - sidebarTouchStartX;
                 const dy = y - sidebarTouchStartY;
                 if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
                     if (dx > 50 && !sidebar.classList.contains('open')) {
-                        sidebar.classList.add('open'); sidebarOverlay.classList.add('open');
+                        sidebar.classList.add('open');
+                        sidebarOverlay.classList.add('open');
                     } else if (dx < -50 && sidebar.classList.contains('open')) {
-                        sidebar.classList.remove('open'); sidebarOverlay.classList.remove('open');
+                        sidebar.classList.remove('open');
+                        sidebarOverlay.classList.remove('open');
                     }
                 }
                 sidebarTracking = false;
                 return;
             }
+
             if (!playerTouchStartY) return;
             const diffY = playerTouchStartY - y;
             const diffX = Math.abs(playerTouchStartX - x);
             if (diffX > Math.abs(diffY)) return;
-            if (diffY > 60 && !expandedPlayer.classList.contains('open') && playerTouchStartY > window.innerHeight - 180) {
-                openExpandedPlayer();
-            } else if (diffY < -60 && expandedPlayer.classList.contains('open')) {
+
+            // Só FECHA o player (swipe pra baixo). NÃO abre mais por swipe.
+            if (diffY < -60 && expandedPlayer.classList.contains('open')) {
                 closeExpandedPlayer();
             }
             playerTouchStartY = 0;
@@ -1161,53 +1106,14 @@
             return d.includes(a);
         }
 
-        // ⚡ CONVERSÃO CRÍTICA PARA ANDROID: File → ArrayBuffer
-        async function pushSong(song) {
+        function pushSong(song) {
             if (!song.artist || song.artist.trim() === "" || isUnknownArtist(song.artist)) {
                 song.artist = "EXNA MUSIC";
             }
-
-            try {
-                console.log('[EXNA] Lendo:', song.file.name, (song.file.size / 1024 / 1024).toFixed(2) + 'MB');
-                const arrayBuffer = await song.file.arrayBuffer();
-
-                const songData = {
-                    name: song.name,
-                    artist: song.artist,
-                    buffer: arrayBuffer,
-                    fileType: song.file.type || 'audio/mpeg',
-                    fileName: song.file.name,
-                    fileSize: song.file.size,
-                    thumbUrl: song.thumbUrl,
-                    favorite: false,
-                    createdAt: Date.now()
-                };
-
-                library.push({
-                    dbId: null,
-                    name: song.name,
-                    artist: song.artist,
-                    url: song.url,
-                    arrayBuffer: arrayBuffer,
-                    fileType: songData.fileType,
-                    thumbUrl: song.thumbUrl,
-                    favorite: false
-                });
-
-                renderLibrary();
-
-                saveSongToDB(songData, (newId) => {
-                    const idx = library.length - 1;
-                    library[idx].dbId = newId;
-                    renderLibrary();
-                    console.log('[EXNA] ✅ Música adicionada:', song.name);
-                    if (library.length === 1 && !audioElement.src) loadSong(0);
-                });
-
-            } catch (err) {
-                console.error('[EXNA] ❌ Erro:', err);
-                alert('Erro ao adicionar: ' + err.message);
-            }
+            library.push(song);
+            saveSongToDB(song);
+            renderLibrary();
+            if (library.length === 1 && !audioElement.src) loadSong(0);
         }
     </script>
 </body>

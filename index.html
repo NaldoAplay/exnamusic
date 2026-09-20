@@ -285,7 +285,16 @@
         }
         .nav-item .nav-emoji { font-size: 16px; flex-shrink: 0; }
 
-        /* BIO DO NALDOA */
+        /* Logo NaldoA Music no link */
+        .nav-logo-img {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+            border-radius: 6px;
+            flex-shrink: 0;
+            display: block;
+        }
+
         .artist-bio {
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
@@ -541,12 +550,10 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
 
-        /* ===== EXPANDED PLAYER — estende o gradiente até a borda física ===== */
         .expanded-player {
             position: fixed;
             top: 100%; left: 0;
             width: 100vw;
-            /* 100lvh = cobre até a borda física do iPhone (inclui safe area) */
             height: 100vh;
             height: 100lvh;
             background-color: var(--theme-base-color);
@@ -635,7 +642,6 @@
         .big-play-btn svg { width: 24px; height: 24px; fill: #fff; }
         .big-play-btn:hover { transform: scale(1.06); }
 
-        /* A lista agora rola até a borda física — sem fade, sem sombra */
         .expanded-playlist-section {
             flex: 1;
             min-height: 0;
@@ -660,7 +666,6 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            /* Empurra os últimos itens para cima do home indicator, mas o gradiente pinta atrás */
             padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
             -webkit-overflow-scrolling: touch;
         }
@@ -806,7 +811,8 @@
 
         <div class="drawer-section-title">Links</div>
         <a href="https://naldoa-dm.web.app" target="_blank" rel="noopener" class="nav-item">
-            <span class="nav-emoji">🌐</span> NaldoA Music
+            <img src="naldoamusic.png" alt="NaldoA Music" class="nav-logo-img">
+            <span>NaldoA Music</span>
         </a>
 
         <div class="social-links">
@@ -973,6 +979,21 @@
             if (!db) return;
             const tx = db.transaction(["songs"], "readwrite");
             tx.objectStore("songs").delete(id);
+        }
+
+        // NOVO — Atualiza o campo favorite no IndexedDB
+        function updateFavoriteInDB(dbId, favorite) {
+            if (!db || !dbId) return;
+            const tx = db.transaction(["songs"], "readwrite");
+            const store = tx.objectStore("songs");
+            const req = store.get(dbId);
+            req.onsuccess = function() {
+                const data = req.result;
+                if (data) {
+                    data.favorite = favorite;
+                    store.put(data);
+                }
+            };
         }
 
         function loadSongsFromDB() {
@@ -1511,8 +1532,13 @@
             return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
         }
 
+        /* FAVORITO — agora persiste no IndexedDB */
         function toggleFavorite(globalIndex) {
-            library[globalIndex].favorite = !library[globalIndex].favorite;
+            const song = library[globalIndex];
+            if (!song) return;
+            song.favorite = !song.favorite;
+            // Atualiza no banco de dados
+            if (song.dbId) updateFavoriteInDB(song.dbId, song.favorite);
             renderLibrary();
             if (currentIndex === globalIndex) updateCurrentSongUI();
         }

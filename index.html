@@ -1510,7 +1510,7 @@
             return library;
         }
 
-        function renderLibrary() {
+                function renderLibrary() {
             const listContainer = document.getElementById('song-list');
             const expListContainer = document.getElementById('expanded-song-list');
             document.getElementById('song-counter').innerText = `${library.length} faixas`;
@@ -1526,14 +1526,14 @@
                 return;
             }
 
-            let html = '';
-            activeList.forEach((song) => {
+            // Helper pra gerar o card de uma música
+            const buildCard = (song) => {
                 const globalIndex = library.indexOf(song);
                 const isCurrent = library[currentIndex] === song;
                 const thumbHTML = song.thumbUrl
                     ? `<img src="${song.thumbUrl}" alt="Capa">`
                     : `<img src="icon.png" alt="EXNA" style="width:100%; height:100%; object-fit:cover;">`;
-                html += `
+                return `
                     <div class="song-card ${isCurrent ? 'active-song' : ''}" onclick="loadSongByGlobalIndex(${globalIndex})">
                         <div class="song-meta">
                             <div class="song-thumb">${thumbHTML}</div>
@@ -1549,12 +1549,19 @@
                         </div>
                     </div>
                 `;
-            });
+            };
 
-            listContainer.innerHTML = html;
-            expListContainer.innerHTML = html;
+            // ===== LISTA PRINCIPAL (ordem original) =====
+            listContainer.innerHTML = activeList.map(buildCard).join('');
+
+            // ===== LISTA DO PLAYER EXPANDIDO (música atual SEMPRE no topo) =====
+            let expList = [...activeList];
+            const currentSong = library[currentIndex];
+            if (currentSong && expList.includes(currentSong)) {
+                expList = [currentSong, ...expList.filter(s => s !== currentSong)];
+            }
+            expListContainer.innerHTML = expList.map(buildCard).join('');
         }
-
         function removeSong(globalIndex) {
             const song = library[globalIndex];
             if (song && song.dbId) deleteSongFromDB(song.dbId);

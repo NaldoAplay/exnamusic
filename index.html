@@ -1235,7 +1235,7 @@
         ];
         let currentThemeIndex = 0;
 
-        function applyTheme(themeId) {
+                function applyTheme(themeId) {
             document.documentElement.setAttribute('data-theme', themeId);
             document.body.setAttribute('data-theme', themeId);
 
@@ -1245,6 +1245,8 @@
                 document.getElementById('theme-toggle-btn').innerText = found.icon;
                 document.getElementById('theme-color-meta').setAttribute('content', found.color);
                 document.documentElement.style.backgroundColor = found.color;
+                // NOVO: aplica a cor base também no body
+                document.body.style.backgroundColor = found.color;
             }
             localStorage.setItem('exna_theme', themeId);
 

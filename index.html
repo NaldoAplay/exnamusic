@@ -593,6 +593,7 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
 
+        /* ===== EXPANDED PLAYER ===== */
         .expanded-player {
             position: fixed;
             top: 100%; left: 0;
@@ -609,6 +610,7 @@
             z-index: 100;
             transition: top 0.4s cubic-bezier(0.1, 0.9, 0.2, 1);
             display: flex; flex-direction: column;
+            gap: 8px;
             padding: calc(env(safe-area-inset-top, 30px) + 10px) 20px 0 20px;
             overflow-y: hidden;
             animation: gradientFlow var(--gradient-duration) ease-in-out infinite;
@@ -634,14 +636,14 @@
         }
         .expanded-action-btn:hover { background: var(--glass-hover); transform: scale(1.05); }
 
+        /* Área central — NÃO cresce, tem tamanho natural (evita sobreposição) */
         .expanded-main-area {
-            flex: 1;
+            flex: 0 0 auto;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 14px;
-            min-height: 0;
+            gap: 12px;
             width: 100%;
             max-width: 400px;
             margin: 0 auto;
@@ -708,7 +710,7 @@
 
         /* ===== FILA DE REPRODUÇÃO ===== */
         .expanded-playlist-section {
-            flex: 1;
+            flex: 1 1 auto;
             min-height: 0;
             max-width: 400px;
             margin: 0 auto;
@@ -722,7 +724,6 @@
                         padding 0.45s cubic-bezier(0.1, 0.9, 0.2, 1);
         }
 
-        /* Header da lista — com o botão alinhado à direita */
         .playlist-header {
             font-size: 11px;
             font-weight: 700;
@@ -737,7 +738,6 @@
             gap: 10px;
         }
 
-        /* Botão compacto — fica no canto direito do header */
         .queue-toggle-btn {
             display: inline-flex;
             align-items: center;
@@ -769,22 +769,21 @@
         }
 
         .expanded-playlist-section .song-grid {
-            flex: 1;
+            flex: 1 1 auto;
+            min-height: 0;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
             gap: 10px;
             padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
             -webkit-overflow-scrolling: touch;
-            transition: flex 0.45s cubic-bezier(0.1, 0.9, 0.2, 1),
-                        max-height 0.45s cubic-bezier(0.1, 0.9, 0.2, 1),
-                        opacity 0.3s ease,
-                        padding 0.45s cubic-bezier(0.1, 0.9, 0.2, 1);
+            transition: opacity 0.3s ease;
         }
 
-        /* ===== ESTADO ESCONDIDO: só o grid some, o header com o botão continua visível ===== */
+        /* ===== ESTADO ESCONDIDO ===== */
         .expanded-player.queue-hidden .expanded-playlist-section {
             flex: 0 0 auto;
+            max-height: none;
             padding-top: 6px;
         }
 
@@ -803,6 +802,7 @@
         }
 
         .expanded-player.queue-hidden .expanded-main-area {
+            flex: 1 1 auto;
             justify-content: space-evenly;
             gap: 18px;
             padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 20px);
@@ -1094,7 +1094,6 @@
             </div>
         </div>
 
-        <!-- FILA DE REPRODUÇÃO — o botão fica no header, alinhado à direita -->
         <div class="expanded-playlist-section">
             <div class="playlist-header">
                 <span id="playlist-header-text">Fila de Reprodução Atual</span>
@@ -1259,7 +1258,6 @@
             applyTheme(themes[currentThemeIndex].id);
         }
 
-        /* ===== TOGGLE DA FILA — VER / OCULTAR ===== */
         function toggleQueue() {
             queueHidden = !queueHidden;
             applyQueueState();

@@ -101,7 +101,7 @@
             --gradient-size: 220% 220%;
             --gradient-duration: 40s;
             width: 100%;
-            height: 100%;
+            min-height: 100lvh;
             margin: 0;
             padding: 0;
             background-color: var(--theme-base-color);
@@ -109,7 +109,6 @@
             background-size: var(--gradient-size);
             background-repeat: no-repeat;
             background-position: 0% 50%;
-            background-attachment: fixed;
             overscroll-behavior: none;
             transition: background-color 0.6s ease;
             animation: gradientFlow var(--gradient-duration) ease-in-out infinite;
@@ -285,6 +284,31 @@
             border-color: var(--accent-solid);
         }
         .nav-item .nav-emoji { font-size: 16px; flex-shrink: 0; }
+
+        /* BIO DO NALDOA */
+        .artist-bio {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 12px 14px;
+            font-size: 12px;
+            line-height: 1.5;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+        .artist-bio strong {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+            font-size: 13px;
+        }
+        .artist-bio .bio-role {
+            display: block;
+            margin-top: 4px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
 
         .playlist-item {
             display: flex;
@@ -517,13 +541,19 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
 
+        /* ===== EXPANDED PLAYER — estende o gradiente até a borda física ===== */
         .expanded-player {
             position: fixed;
             top: 100%; left: 0;
-            width: 100vw; height: 100vh; height: 100dvh;
+            width: 100vw;
+            /* 100lvh = cobre até a borda física do iPhone (inclui safe area) */
+            height: 100vh;
+            height: 100lvh;
+            background-color: var(--theme-base-color);
             background-image: var(--bg-gradient);
             background-size: var(--gradient-size);
             background-position: 0% 50%;
+            background-repeat: no-repeat;
             backdrop-filter: blur(60px);
             -webkit-backdrop-filter: blur(60px);
             z-index: 100;
@@ -605,41 +635,34 @@
         .big-play-btn svg { width: 24px; height: 24px; fill: #fff; }
         .big-play-btn:hover { transform: scale(1.06); }
 
-        /* ===== FILA DE REPRODUÇÃO COM EFEITO INFINITO ===== */
+        /* A lista agora rola até a borda física — sem fade, sem sombra */
         .expanded-playlist-section {
-            flex: 1; min-height: 0;
-            max-width: 400px; margin: 0 auto; width: 100%;
-            display: flex; flex-direction: column; gap: 6px; overflow: hidden;
-            position: relative;
+            flex: 1;
+            min-height: 0;
+            max-width: 400px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            overflow: hidden;
         }
 
         .playlist-header {
             font-size: 11px; font-weight: 700; text-transform: uppercase;
             letter-spacing: 0.8px; color: var(--text-secondary);
             flex-shrink: 0; padding-left: 4px; padding-bottom: 2px;
-            position: relative; z-index: 4;
         }
 
         .expanded-playlist-section .song-grid {
-            flex: 1; overflow-y: auto;
-            display: flex; flex-direction: column; gap: 10px;
-            padding-bottom: 70px;
-        }
-
-        /* Fade "infinito" no final da lista */
-        .expanded-playlist-section::after {
-            content: "";
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: calc(env(safe-area-inset-bottom, 0px) + 60px);
-            background: linear-gradient(to bottom,
-                transparent 0%,
-                color-mix(in srgb, var(--theme-base-color, #000) 60%, transparent) 40%,
-                var(--theme-base-color, #000) 100%);
-            pointer-events: none;
-            z-index: 3;
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            /* Empurra os últimos itens para cima do home indicator, mas o gradiente pinta atrás */
+            padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+            -webkit-overflow-scrolling: touch;
         }
 
         .empty-state { text-align: center; padding: 24px; color: var(--text-secondary); }
@@ -774,9 +797,16 @@
         </div>
         <div id="playlists-list"></div>
 
+        <div class="drawer-section-title">Conhecer NaldoA</div>
+        <div class="artist-bio">
+            <strong>NaldoA</strong>
+            <span class="bio-role">Fundador do EXNA MUSIC</span>
+            <p style="margin-top: 8px;">Artista e criador do projeto <strong style="font-size: 11px;">NaldoA Music</strong>. Músico apaixonado por transformar sons em experiências únicas.</p>
+        </div>
+
         <div class="drawer-section-title">Links</div>
         <a href="https://naldoa-dm.web.app" target="_blank" rel="noopener" class="nav-item">
-            <span class="nav-emoji">🌐</span> Meu Site
+            <span class="nav-emoji">🌐</span> NaldoA Music
         </a>
 
         <div class="social-links">
@@ -1020,7 +1050,6 @@
             applyTheme(themes[currentThemeIndex].id);
         }
 
-        /* ============ PLAYLISTS ============ */
         function savePlaylists() {
             localStorage.setItem('exna_playlists', JSON.stringify(playlists));
         }
@@ -1133,7 +1162,6 @@
             renderLibrary();
         }
 
-        /* ============ EXTRAÇÃO DE CORES ============ */
         function extractAlbumColors(imageUrl) {
             return new Promise((resolve) => {
                 const img = new Image();
@@ -1220,7 +1248,6 @@
             document.documentElement.style.backgroundColor = themeColor;
         }
 
-        /* ============ NAVEGAÇÃO ============ */
         function selectView(view, playlistId) {
             currentView = view;
             currentPlaylistId = (view === 'playlist') ? playlistId : null;
@@ -1298,7 +1325,6 @@
             expListContainer.innerHTML = html;
         }
 
-        /* ============ AÇÕES ============ */
         function removeSong(globalIndex) {
             const song = library[globalIndex];
             if (song && song.dbId) deleteSongFromDB(song.dbId);
@@ -1503,10 +1529,8 @@
         function openExpandedPlayer() { expandedPlayer.classList.add('open'); }
         function closeExpandedPlayer() { expandedPlayer.classList.remove('open'); }
 
-        /* ============ GESTOS DE DESLIZAR ============ */
         let playerTouchStartY = 0;
         let playerTouchStartX = 0;
-
         let sidebarTouchStartX = 0;
         let sidebarTouchStartY = 0;
         let sidebarTracking = false;

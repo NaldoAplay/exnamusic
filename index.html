@@ -631,7 +631,6 @@
         .control-btn:hover { transform: scale(1.1); }
         .control-btn.active-mode { color: var(--accent-solid); }
 
-        /* Ícones com stroke (shuffle) — não usar fill */
         #shuffle-mini-btn svg,
         #shuffle-exp-btn svg {
             fill: none !important;
@@ -1262,6 +1261,42 @@
         let currentModalSongIndex = null;
         let queueHidden = localStorage.getItem('exna_queue_hidden') === 'true';
 
+        // ============================================================
+        // PERSISTÊNCIA — Evita que Android/Chrome apague os dados
+        // ============================================================
+        async function ensurePersistentStorage() {
+            try {
+                if (navigator.storage && navigator.storage.persist) {
+                    const already = await navigator.storage.persisted();
+                    if (already) {
+                        console.log('[EXNA] Storage persistente ✅');
+                        return true;
+                    }
+                    const granted = await navigator.storage.persist();
+                    console.log('[EXNA] Persistência concedida:', granted);
+                    return granted;
+                }
+            } catch (e) {
+                console.warn('[EXNA] Erro persistência:', e);
+            }
+            return false;
+        }
+
+        // Verifica quanto espaço tem disponível (útil pra debug)
+        async function logStorageInfo() {
+            try {
+                if (navigator.storage && navigator.storage.estimate) {
+                    const est = await navigator.storage.estimate();
+                    const usedMB = (est.usage / 1024 / 1024).toFixed(1);
+                    const quotaMB = (est.quota / 1024 / 1024).toFixed(1);
+                    console.log(`[EXNA] Storage: ${usedMB}MB usados de ${quotaMB}MB disponíveis`);
+                }
+            } catch (e) {}
+        }
+
+        // Chama o pedido de persistência assim que o app abre
+        ensurePersistentStorage().then(() => logStorageInfo());
+
         const audioElement = document.getElementById('audio-element');
         const fileInput = document.getElementById('file-input');
         const sidebar = document.getElementById('sidebar-drawer');
@@ -1293,7 +1328,14 @@
 
         dbRequest.onsuccess = function(e) {
             db = e.target.result;
+            console.log('[EXNA] IndexedDB aberto ✅');
+            // Pede persistência DEPOIS do banco estar aberto
+            ensurePersistentStorage();
             loadSongsFromDB();
+        };
+
+        dbRequest.onerror = function(e) {
+            console.error('[EXNA] Erro IndexedDB:', e.target.error);
         };
 
         function saveSongToDB(songData) {
@@ -1328,6 +1370,7 @@
             const req = tx.objectStore("songs").getAll();
             req.onsuccess = function() {
                 const saved = req.result;
+                console.log(`[EXNA] ${saved.length} músicas carregadas do banco`);
                 if (saved && saved.length > 0) {
                     saved.forEach(item => {
                         library.push({
@@ -1683,7 +1726,7 @@
             `;
         }
 
-                function renderLibrary() {
+        function renderLibrary() {
             const listContainer = document.getElementById('song-list');
             const expListContainer = document.getElementById('expanded-song-list');
             document.getElementById('song-counter').innerText = `${library.length} faixas`;
@@ -1707,7 +1750,6 @@
             let expList = [...activeList];
             if (currentSong && expList.includes(currentSong)) {
                 const idx = expList.indexOf(currentSong);
-                // Rotaciona: começa na música atual e segue em ordem
                 expList = [...expList.slice(idx), ...expList.slice(0, idx)];
             }
             expListContainer.innerHTML = expList.map(buildCard).join('');

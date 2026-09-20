@@ -1,4 +1,4 @@
-const CACHE_NAME = 'exna-music-v1.0';
+const CACHE_NAME = 'exna-music-v2.0';
 const assetsToCache = [
     './',
     'index.html',

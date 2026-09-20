@@ -64,7 +64,6 @@
             --text-secondary: rgba(248, 250, 252, 0.65);
         }
 
-        /* TEMA ALBUM — cores dinâmicas com tons suaves */
         [data-theme="album"] {
             --bg-gradient: linear-gradient(135deg,
                 var(--album-c1, #090a0f) 0%,
@@ -148,19 +147,7 @@
             transition: color 0.4s ease;
         }
 
-        /* Camada que pinta a safe area inferior (home indicator do iPhone) */
-        body::after {
-            content: "";
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: env(safe-area-inset-bottom, 12px);
-            background-color: var(--theme-base-color);
-            z-index: 999;
-            pointer-events: none;
-            transition: background-color 0.6s ease;
-        }
+        /* NOTA: a camada body::after foi REMOVIDA — era ela que criava a borda preta */
 
         header {
             width: 100%;
@@ -230,6 +217,7 @@
             width: 100vw; height: 100vh;
             background: rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             z-index: 90;
             opacity: 0;
             visibility: hidden;
@@ -252,7 +240,7 @@
             transition: left 0.35s cubic-bezier(0.1, 0.9, 0.2, 1);
             display: flex;
             flex-direction: column;
-            padding: calc(env(safe-area-inset-top, 30px) + 14px) 16px 16px 16px;
+            padding: calc(env(safe-area-inset-top, 30px) + 14px) 16px calc(env(safe-area-inset-bottom, 20px) + 16px) 16px;
             gap: 8px;
             overflow-y: auto;
             overscroll-behavior: contain;
@@ -1128,7 +1116,7 @@
             renderLibrary();
         }
 
-        /* ============ EXTRAÇÃO DE CORES DA CAPA ============ */
+        /* ============ EXTRAÇÃO DE CORES ============ */
         function extractAlbumColors(imageUrl) {
             return new Promise((resolve) => {
                 const img = new Image();
@@ -1184,14 +1172,12 @@
             });
         }
 
-        /* ============ TEMA ALBUM SUAVIZADO ============ */
         async function updateAlbumThemeColors(song) {
             if (!song) return;
             const imgUrl = song.thumbUrl || 'icon.png';
             const colors = await extractAlbumColors(imgUrl);
             if (!colors) return;
 
-            // Dessaturar + escurecer mantendo harmonia entre as cores
             const soften = (c, satFactor, brightness) => {
                 const avg = (c.r + c.g + c.b) / 3;
                 const r = Math.max(0, Math.min(255, Math.round((avg + (c.r - avg) * satFactor) * brightness)));
@@ -1212,13 +1198,12 @@
             root.style.setProperty('--album-c3', toRgb(accent));
             root.style.setProperty('--album-base', toRgb(base));
 
-            // Atualiza a cor da status bar (topo) e do fundo do navegador
             const themeColor = toRgb(base);
             document.getElementById('theme-color-meta').setAttribute('content', themeColor);
             document.documentElement.style.backgroundColor = themeColor;
         }
 
-        /* ============ NAVEGAÇÃO / VIEWS ============ */
+        /* ============ NAVEGAÇÃO ============ */
         function selectView(view, playlistId) {
             currentView = view;
             currentPlaylistId = (view === 'playlist') ? playlistId : null;
@@ -1296,7 +1281,7 @@
             expListContainer.innerHTML = html;
         }
 
-        /* ============ AÇÕES DE MÚSICA ============ */
+        /* ============ AÇÕES ============ */
         function removeSong(globalIndex) {
             const song = library[globalIndex];
             if (song && song.dbId) deleteSongFromDB(song.dbId);
@@ -1501,13 +1486,75 @@
         function openExpandedPlayer() { expandedPlayer.classList.add('open'); }
         function closeExpandedPlayer() { expandedPlayer.classList.remove('open'); }
 
-        let touchStartY = 0;
-        window.addEventListener('touchstart', (e) => { touchStartY = e.touches[0].clientY; }, {passive: true});
+        /* ============ GESTOS DE DESLIZAR ============ */
+        // 1) Player expandido: swipe de baixo pra cima (abre) e de cima pra baixo (fecha)
+        let playerTouchStartY = 0;
+        let playerTouchStartX = 0;
+
+        // 2) Sidebar: swipe da borda esquerda pra direita (abre) e da direita pra esquerda (fecha)
+        let sidebarTouchStartX = 0;
+        let sidebarTouchStartY = 0;
+        let sidebarTracking = false;
+
+        window.addEventListener('touchstart', (e) => {
+            const t = e.touches[0];
+            const x = t.clientX;
+            const y = t.clientY;
+
+            // Detecta swipe do player (perto do fundo OU com ele aberto)
+            if (y > window.innerHeight - 180 || expandedPlayer.classList.contains('open')) {
+                playerTouchStartY = y;
+                playerTouchStartX = x;
+            }
+
+            // Detecta swipe da sidebar (borda esquerda OU com ela aberta)
+            if (x < 32 || sidebar.classList.contains('open')) {
+                sidebarTouchStartX = x;
+                sidebarTouchStartY = y;
+                sidebarTracking = true;
+            } else {
+                sidebarTracking = false;
+            }
+        }, { passive: true });
+
         window.addEventListener('touchend', (e) => {
-            const diff = touchStartY - e.changedTouches[0].clientY;
-            if (diff > 60 && !expandedPlayer.classList.contains('open') && touchStartY > window.innerHeight - 150) openExpandedPlayer();
-            else if (diff < -60 && expandedPlayer.classList.contains('open')) closeExpandedPlayer();
-        }, {passive: true});
+            const t = e.changedTouches[0];
+            const x = t.clientX;
+            const y = t.clientY;
+
+            // === Swipe da SIDEBAR ===
+            if (sidebarTracking) {
+                const dx = x - sidebarTouchStartX;
+                const dy = y - sidebarTouchStartY;
+                // Só conta se o movimento horizontal for maior que o vertical
+                if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+                    if (dx > 50 && !sidebar.classList.contains('open')) {
+                        // abre
+                        sidebar.classList.add('open');
+                        sidebarOverlay.classList.add('open');
+                    } else if (dx < -50 && sidebar.classList.contains('open')) {
+                        // fecha
+                        sidebar.classList.remove('open');
+                        sidebarOverlay.classList.remove('open');
+                    }
+                }
+                sidebarTracking = false;
+                return; // não processa swipe do player se foi da sidebar
+            }
+
+            // === Swipe do PLAYER EXPANDIDO ===
+            if (!playerTouchStartY) return;
+            const diffY = playerTouchStartY - y;
+            const diffX = Math.abs(playerTouchStartX - x);
+            if (diffX > Math.abs(diffY)) return; // se foi mais horizontal que vertical, ignora
+
+            if (diffY > 60 && !expandedPlayer.classList.contains('open') && playerTouchStartY > window.innerHeight - 180) {
+                openExpandedPlayer();
+            } else if (diffY < -60 && expandedPlayer.classList.contains('open')) {
+                closeExpandedPlayer();
+            }
+            playerTouchStartY = 0;
+        }, { passive: true });
 
         fileInput.addEventListener('change', function(e) {
             const files = e.target.files;

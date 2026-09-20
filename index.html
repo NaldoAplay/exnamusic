@@ -687,6 +687,7 @@ function closePlaylistModal() {
     currentModalSongIndex = null;
 }
 
+/* ============ ADICIONAR/REMOVER DA PLAYLIST (SEM MEXER NA VIEW ATUAL) ============ */
 function toggleSongInPlaylist(playlistId) {
     if (currentModalSongIndex === null) return;
     const song = library[currentModalSongIndex];
@@ -697,14 +698,23 @@ function toggleSongInPlaylist(playlistId) {
     }
     const pl = playlists.find(p => p.id === playlistId);
     if (!pl) return;
+
     if (pl.songIds.includes(song.dbId)) {
         removeSongFromPlaylist(playlistId, song.dbId);
     } else {
         addSongToPlaylist(playlistId, song.dbId);
     }
+
     renderPlaylists();
+    // Atualiza só a modal
     openPlaylistModal(currentModalSongIndex);
-    renderLibrary();
+
+    // Se estiver na view dessa playlist, re-renderiza a lista principal
+    if (currentView === 'playlist' && currentPlaylistId === playlistId) {
+        renderLibrary();
+    }
+    // Se NÃO estiver na playlist, NÃO re-renderiza a lista de "Todas as Músicas"
+    // A música permanece exatamente onde estava
 }
 
 function extractAlbumColors(imageUrl) {
@@ -951,8 +961,22 @@ function loadSong(index) {
 
     audioElement.play().then(() => {
         updatePlayButtons(true);
-        renderLibrary();
+        // Atualiza só o destaque dos cards, sem recriar tudo
+        updateCardsHighlight();
     }).catch(err => console.log("Erro ao reproduzir:", err));
+}
+
+function updateCardsHighlight() {
+    // Atualiza a classe active-song em todos os cards visíveis sem recriar o DOM
+    document.querySelectorAll('.song-card').forEach(card => {
+        const onClick = card.getAttribute('onclick') || '';
+        const match = onClick.match(/handleCardClick\(event,\s*(\d+)\)/);
+        if (match) {
+            const idx = parseInt(match[1], 10);
+            if (idx === currentIndex) card.classList.add('active-song');
+            else card.classList.remove('active-song');
+        }
+    });
 }
 
 function updateCurrentSongUI() {
@@ -1077,13 +1101,40 @@ function formatTime(seconds) {
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 }
 
+/* ============ FAVORITAR (SEM MEXER NA LISTA) ============ */
 function toggleFavorite(globalIndex) {
     const song = library[globalIndex];
     if (!song) return;
     song.favorite = !song.favorite;
     if (song.dbId) updateFavoriteInDB(song.dbId, song.favorite);
-    renderLibrary();
-    if (currentIndex === globalIndex) updateCurrentSongUI();
+
+    // Atualiza SÓ os botões dessa música em todas as listas visíveis
+    document.querySelectorAll(`.song-action-btn[data-action="favorite"][data-index="${globalIndex}"]`).forEach(btn => {
+        btn.classList.toggle('is-fav', song.favorite);
+        const svg = btn.querySelector('svg');
+        if (svg) {
+            if (song.favorite) {
+                svg.style.fill = 'currentColor';
+                svg.style.stroke = 'currentColor';
+            } else {
+                svg.style.fill = '';
+                svg.style.stroke = '';
+            }
+        }
+    });
+
+    // Se estiver vendo a lista de Favoritos, re-renderiza (porque a música pode aparecer/sumir daqui)
+    // Mas se estiver em "Todas as Músicas", NÃO re-renderiza — a música continua lá do mesmo jeito
+    if (currentView === 'favorites') {
+        renderLibrary();
+    }
+
+    // Atualiza o botão do player expandido se for a música atual
+    if (currentIndex === globalIndex) {
+        const favBtn = document.getElementById('expanded-fav-btn');
+        if (song.favorite) favBtn.classList.add('is-fav');
+        else favBtn.classList.remove('is-fav');
+    }
 }
 
 function toggleFavoriteCurrent() {
@@ -1231,7 +1282,6 @@ function pushSong(song) {
         const idx = library.indexOf(song);
         if (idx !== -1) library[idx].dbId = newId;
         console.log('[EXNA] dbId setado:', newId, 'para', song.name);
-        renderLibrary();
     });
 
     renderLibrary();

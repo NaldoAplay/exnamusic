@@ -18,10 +18,7 @@
     <meta property="og:title" content="EXNA Music — Player de Música Offline Grátis">
     <meta property="og:description" content="Ouça suas músicas favoritas sem internet! Player offline grátis, sem anúncios, criado por NaldoA.">
     <meta property="og:image" content="https://naldoaplay.github.io/exnamusic/icon.png">
-    <meta property="og:image:width" content="512">
-    <meta property="og:image:height" content="512">
     <meta property="og:locale" content="pt_BR">
-    <meta property="og:site_name" content="EXNA Music">
 
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="EXNA Music — Player de Música Offline Grátis">
@@ -437,7 +434,7 @@
         let currentModalSongIndex = null;
         let queueHidden = localStorage.getItem('exna_queue_hidden') === 'true';
 
-        // Pede armazenamento persistente (evita limpeza automática em alguns navegadores)
+        // Pede armazenamento persistente (ajuda em alguns navegadores)
         if (navigator.storage && navigator.storage.persist) {
             navigator.storage.persist().catch(() => {});
         }
@@ -460,106 +457,176 @@
             circle: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>'
         };
 
-        let db;
-        const dbRequest = indexedDB.open("ExnaMusicDB", 2);
+        // =====================================================
+        // NOVA ESTRUTURA DE ARMAZENAMENTO (OPFS + IndexedDB)
+        // =====================================================
+        // Músicas (arquivos grandes) → OPFS (Origin Private File System)
+        // Metadados (leves) → IndexedDB
 
-        dbRequest.onupgradeneeded = function(e) {
-            db = e.target.result;
-            if (!db.objectStoreNames.contains("songs")) {
-                db.createObjectStore("songs", { keyPath: "id", autoIncrement: true });
+        let opfsRoot = null;
+        let db = null;
+
+        async function initStorage() {
+            // 1. Inicializa OPFS (se disponível)
+            try {
+                if (navigator.storage && navigator.storage.getDirectory) {
+                    opfsRoot = await navigator.storage.getDirectory();
+                    console.log('[EXNA] OPFS disponível ✅');
+                } else {
+                    console.warn('[EXNA] OPFS não disponível, usando IndexedDB puro');
+                }
+            } catch (e) {
+                console.warn('[EXNA] Erro ao acessar OPFS:', e);
             }
-        };
 
-        dbRequest.onsuccess = function(e) {
-            db = e.target.result;
-            console.log('[EXNA] DB aberto ✅');
-            loadSongsFromDB();
-        };
+            // 2. Abre IndexedDB (só metadados)
+            const dbRequest = indexedDB.open("ExnaMusicDB", 3);
+            dbRequest.onupgradeneeded = function(e) {
+                const d = e.target.result;
+                if (!d.objectStoreNames.contains("meta")) {
+                    d.createObjectStore("meta", { keyPath: "id", autoIncrement: true });
+                }
+            };
+            dbRequest.onsuccess = function(e) {
+                db = e.target.result;
+                console.log('[EXNA] IndexedDB (metadados) aberto ✅');
+                loadLibrary();
+            };
+            dbRequest.onerror = function(e) {
+                console.error('[EXNA] Erro IndexedDB:', e.target.error);
+            };
+        }
 
-        dbRequest.onerror = function(e) {
-            console.error('[EXNA] Erro DB:', e.target.error);
-        };
+        // Salva arquivo da música no OPFS
+        async function saveAudioFile(id, arrayBuffer, originalName) {
+            if (!opfsRoot) throw new Error("OPFS indisponível");
+            const fileName = `song_${id}_${originalName.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+            const fileHandle = await opfsRoot.getFileHandle(fileName, { create: true });
+            const writable = await fileHandle.createWritable();
+            await writable.write(arrayBuffer);
+            await writable.close();
+            console.log('[EXNA] 💾 Arquivo salvo no OPFS:', fileName);
+            return fileName;
+        }
 
-        // ⚡ SALVA COM CALLBACK (funciona em Android)
-        function saveSongToDB(songData, callback) {
-            if (!db) { console.error('[EXNA] DB não pronto'); return; }
-            const tx = db.transaction(["songs"], "readwrite");
-            const store = tx.objectStore("songs");
-            const req = store.add(songData);
+        // Lê arquivo da música do OPFS
+        async function loadAudioFile(fileName) {
+            if (!opfsRoot) return null;
+            try {
+                const fileHandle = await opfsRoot.getFileHandle(fileName);
+                const file = await fileHandle.getFile();
+                return file;
+            } catch (e) {
+                console.warn('[EXNA] Arquivo não encontrado no OPFS:', fileName);
+                return null;
+            }
+        }
+
+        // Deleta arquivo do OPFS
+        async function deleteAudioFile(fileName) {
+            if (!opfsRoot || !fileName) return;
+            try {
+                await opfsRoot.removeEntry(fileName);
+                console.log('[EXNA] 🗑️ Arquivo removido do OPFS:', fileName);
+            } catch (e) {
+                console.warn('[EXNA] Erro ao remover:', e);
+            }
+        }
+
+        // Salva metadados no IndexedDB
+        function saveMetaToDB(meta, callback) {
+            if (!db) return;
+            const tx = db.transaction(["meta"], "readwrite");
+            const store = tx.objectStore("meta");
+            const req = store.add(meta);
             req.onsuccess = function(e) {
-                console.log('[EXNA] ✅ Salvo ID:', e.target.result);
                 if (callback) callback(e.target.result);
             };
             req.onerror = function(e) {
-                console.error('[EXNA] ❌ Erro salvar:', e.target.error);
+                console.error('[EXNA] Erro ao salvar meta:', e.target.error);
             };
         }
 
-        function deleteSongFromDB(id) {
+        function updateMetaInDB(id, updates) {
             if (!db) return;
-            const tx = db.transaction(["songs"], "readwrite");
-            tx.objectStore("songs").delete(id);
-        }
-
-        function updateFavoriteInDB(dbId, favorite) {
-            if (!db || !dbId) return;
-            const tx = db.transaction(["songs"], "readwrite");
-            const store = tx.objectStore("songs");
-            const req = store.get(dbId);
+            const tx = db.transaction(["meta"], "readwrite");
+            const store = tx.objectStore("meta");
+            const req = store.get(id);
             req.onsuccess = function() {
                 const data = req.result;
-                if (data) { data.favorite = favorite; store.put(data); }
-            };
-        }
-
-        // ⚡ CARREGA COM suporte a ArrayBuffer (novo) E File (antigo)
-        function loadSongsFromDB() {
-            if (!db) return;
-            const tx = db.transaction(["songs"], "readonly");
-            const req = tx.objectStore("songs").getAll();
-            req.onsuccess = function() {
-                const saved = req.result;
-                console.log('[EXNA] 📦 Carregadas', saved.length, 'músicas');
-
-                if (saved && saved.length > 0) {
-                    saved.forEach(item => {
-                        try {
-                            let url = null;
-                            if (item.buffer) {
-                                const blob = new Blob([item.buffer], { type: item.fileType || 'audio/mpeg' });
-                                url = URL.createObjectURL(blob);
-                            } else if (item.file) {
-                                url = URL.createObjectURL(item.file);
-                            }
-                            if (url) {
-                                library.push({
-                                    dbId: item.id,
-                                    name: item.name,
-                                    artist: item.artist || "EXNA MUSIC",
-                                    url: url,
-                                    arrayBuffer: item.buffer || null,
-                                    fileType: item.fileType || null,
-                                    thumbUrl: item.thumbUrl || null,
-                                    favorite: item.favorite || false
-                                });
-                            }
-                        } catch (err) {
-                            console.error('[EXNA] Erro carregar:', item.name, err);
-                        }
-                    });
-                    renderLibrary();
-                    renderPlaylists();
-                    const lastIndex = parseInt(localStorage.getItem('exna_last_index')) || 0;
-                    const savedTime = parseFloat(localStorage.getItem('exna_last_time')) || 0;
-                    if (library[lastIndex]) {
-                        currentIndex = lastIndex;
-                        audioElement.src = library[currentIndex].url;
-                        updateCurrentSongUI();
-                        audioElement.currentTime = savedTime;
-                    }
+                if (data) {
+                    Object.assign(data, updates);
+                    store.put(data);
                 }
             };
         }
+
+        function deleteMetaFromDB(id) {
+            if (!db) return;
+            const tx = db.transaction(["meta"], "readwrite");
+            tx.objectStore("meta").delete(id);
+        }
+
+        // Carrega toda a biblioteca (metadados + arquivos)
+        async function loadLibrary() {
+            if (!db) return;
+            const tx = db.transaction(["meta"], "readonly");
+            const req = tx.objectStore("meta").getAll();
+
+            req.onsuccess = async function() {
+                const metas = req.result;
+                console.log('[EXNA] 📦', metas.length, 'músicas encontradas');
+
+                for (const meta of metas) {
+                    let url = null;
+                    try {
+                        // Tenta OPFS primeiro
+                        if (meta.fileName && opfsRoot) {
+                            const file = await loadAudioFile(meta.fileName);
+                            if (file) {
+                                url = URL.createObjectURL(file);
+                            }
+                        }
+                        // Fallback: formato antigo (buffer ou file no IndexedDB)
+                        if (!url && meta.buffer) {
+                            const blob = new Blob([meta.buffer], { type: meta.fileType || 'audio/mpeg' });
+                            url = URL.createObjectURL(blob);
+                        }
+                        if (!url && meta.file) {
+                            url = URL.createObjectURL(meta.file);
+                        }
+                    } catch (e) {
+                        console.error('[EXNA] Erro ao carregar:', meta.name, e);
+                    }
+
+                    if (url) {
+                        library.push({
+                            dbId: meta.id,
+                            name: meta.name,
+                            artist: meta.artist || "EXNA MUSIC",
+                            url: url,
+                            fileName: meta.fileName || null,
+                            thumbUrl: meta.thumbUrl || null,
+                            favorite: meta.favorite || false
+                        });
+                    }
+                }
+
+                renderLibrary();
+                renderPlaylists();
+                const lastIndex = parseInt(localStorage.getItem('exna_last_index')) || 0;
+                const savedTime = parseFloat(localStorage.getItem('exna_last_time')) || 0;
+                if (library[lastIndex]) {
+                    currentIndex = lastIndex;
+                    audioElement.src = library[currentIndex].url;
+                    updateCurrentSongUI();
+                    audioElement.currentTime = savedTime;
+                }
+            };
+        }
+
+        // Inicia o storage
+        initStorage();
 
         window.addEventListener('DOMContentLoaded', () => {
             const logo = document.getElementById('app-logo-container');
@@ -872,7 +939,10 @@
 
         function removeSong(globalIndex) {
             const song = library[globalIndex];
-            if (song && song.dbId) deleteSongFromDB(song.dbId);
+            if (song && song.dbId) {
+                deleteMetaFromDB(song.dbId);
+                if (song.fileName) deleteAudioFile(song.fileName);
+            }
             playlists.forEach(pl => { pl.songIds = pl.songIds.filter(id => id !== song.dbId); });
             savePlaylists();
             renderPlaylists();
@@ -1037,7 +1107,7 @@
             const song = library[globalIndex];
             if (!song) return;
             song.favorite = !song.favorite;
-            if (song.dbId) updateFavoriteInDB(song.dbId, song.favorite);
+            if (song.dbId) updateMetaInDB(song.dbId, { favorite: song.favorite });
             renderLibrary();
             if (currentIndex === globalIndex) updateCurrentSongUI();
         }
@@ -1052,7 +1122,6 @@
         function openExpandedPlayer() { expandedPlayer.classList.add('open'); }
         function closeExpandedPlayer() { expandedPlayer.classList.remove('open'); }
 
-        /* ============ GESTOS ============ */
         let playerTouchStartY = 0;
         let playerTouchStartX = 0;
         let sidebarTouchStartX = 0;
@@ -1095,7 +1164,6 @@
             const t = e.touches[0];
             const x = t.clientX;
             const y = t.clientY;
-            // Só rastreia gesto do player quando ele JÁ está aberto (pra fechar)
             if (expandedPlayer.classList.contains('open')) {
                 playerTouchStartY = y;
                 playerTouchStartX = x;
@@ -1132,7 +1200,6 @@
             const diffY = playerTouchStartY - y;
             const diffX = Math.abs(playerTouchStartX - x);
             if (diffX > Math.abs(diffY)) return;
-            // Só FECHA o player (swipe pra baixo). NÃO abre mais por swipe.
             if (diffY < -60 && expandedPlayer.classList.contains('open')) {
                 closeExpandedPlayer();
             }
@@ -1179,46 +1246,57 @@
             return d.includes(a);
         }
 
-        // ⚡ CONVERSÃO CRÍTICA PARA ANDROID: File → ArrayBuffer
+        // ⚡ SALVA: OPFS (arquivo) + IndexedDB (metadados) — função definitiva
         async function pushSong(song) {
             if (!song.artist || song.artist.trim() === "" || isUnknownArtist(song.artist)) {
                 song.artist = "EXNA MUSIC";
             }
 
             try {
-                console.log('[EXNA] Lendo:', song.file.name, (song.file.size / 1024 / 1024).toFixed(2) + 'MB');
+                console.log('[EXNA] 📥 Adicionando:', song.file.name, (song.file.size / 1024 / 1024).toFixed(2) + 'MB');
                 const arrayBuffer = await song.file.arrayBuffer();
 
-                const songData = {
+                // Salva metadados primeiro pra obter um ID
+                const meta = {
                     name: song.name,
                     artist: song.artist,
-                    buffer: arrayBuffer,
+                    fileName: null, // preenchido depois
                     fileType: song.file.type || 'audio/mpeg',
-                    fileName: song.file.name,
                     fileSize: song.file.size,
+                    originalName: song.file.name,
                     thumbUrl: song.thumbUrl,
                     favorite: false,
                     createdAt: Date.now()
                 };
 
-                library.push({
-                    dbId: null,
-                    name: song.name,
-                    artist: song.artist,
-                    url: song.url,
-                    arrayBuffer: arrayBuffer,
-                    fileType: songData.fileType,
-                    thumbUrl: song.thumbUrl,
-                    favorite: false
-                });
+                saveMetaToDB(meta, async (newId) => {
+                    // Agora salva o arquivo no OPFS com o ID
+                    let fileName = null;
+                    try {
+                        fileName = await saveAudioFile(newId, arrayBuffer, song.file.name);
+                    } catch (e) {
+                        console.error('[EXNA] Erro OPFS, salvando no IndexedDB como fallback:', e);
+                        // Fallback: salva buffer no próprio IndexedDB
+                        updateMetaInDB(newId, { buffer: arrayBuffer });
+                    }
 
-                renderLibrary();
+                    if (fileName) {
+                        updateMetaInDB(newId, { fileName: fileName });
+                    }
 
-                saveSongToDB(songData, (newId) => {
-                    const idx = library.length - 1;
-                    library[idx].dbId = newId;
+                    // Adiciona à lista em memória
+                    library.push({
+                        dbId: newId,
+                        name: song.name,
+                        artist: song.artist,
+                        url: song.url,
+                        fileName: fileName,
+                        thumbUrl: song.thumbUrl,
+                        favorite: false
+                    });
+
                     renderLibrary();
-                    console.log('[EXNA] ✅ Música adicionada:', song.name);
+                    console.log('[EXNA] ✅ Adicionada:', song.name);
                     if (library.length === 1 && !audioElement.src) loadSong(0);
                 });
 
